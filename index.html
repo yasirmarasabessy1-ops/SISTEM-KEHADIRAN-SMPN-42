@@ -1,0 +1,3447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>E-Absensi SMP Negeri 42 Buru</title>
+
+  <!-- PWA Manifest Single-File Data URI -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"E-Absensi SMP Negeri 42 Buru","short_name":"Absensi SMPN42","start_url":".","display":"standalone","background_color":"#FAF7F5","theme_color":"#7D73E0","icons":[{"src":"https://placehold.co/192x192/7D73E0/ffffff?text=SMP42","sizes":"192x192","type":"image/png"},{"src":"https://placehold.co/512x512/7D73E0/ffffff?text=SMP42","sizes":"512x512","type":"image/png"}]}' />
+  <meta name="theme-color" content="#7D73E0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono (untuk Jam Masuk/Pulang Tabel PDF) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- HTML2PDF.js Library untuk Download File PDF A4 Langsung -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            serif: ['"Times New Roman"', 'Times', 'serif']
+          },
+          colors: {
+            clay: {
+              canvas: '#FAF7F5',
+              sidebar: '#7D73E0',
+              sidebarDark: '#675CC9',
+              purple: '#8C67F6',
+              loginBlue: '#9BC5F9',
+              ice: '#DFF0FF',
+              rose: '#FDE6E8',
+              amber: '#FFF3D6',
+              mint: '#DCF7EC',
+              input: '#EEF2F9',
+              navy: '#1E1B39'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Full-Page Blogger Override Tanpa Edit XML */
+    #app-master-wrapper {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 999999;
+      background-color: #FAF7F5;
+      overflow-y: auto;
+      overflow-x: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #1E1B39;
+    }
+
+    /* Custom Scrollbar */
+    #app-master-wrapper::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #app-master-wrapper::-webkit-scrollbar-track {
+      background: #F1EFEA;
+    }
+    #app-master-wrapper::-webkit-scrollbar-thumb {
+      background: #C4BFF0;
+      border-radius: 9999px;
+    }
+
+    /* 3D Claymorphism & Glassmorphism Effects */
+    .clay-sidebar {
+      background: linear-gradient(165deg, #8B82EE 0%, #7166D8 100%);
+      box-shadow:
+        12px 18px 36px rgba(103, 92, 201, 0.28),
+        inset 2px 3px 6px rgba(255, 255, 255, 0.35),
+        inset -3px -4px 8px rgba(70, 58, 165, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .clay-card-white {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      box-shadow:
+        0 14px 30px -8px rgba(30, 27, 57, 0.06),
+        0 4px 12px -2px rgba(125, 115, 224, 0.06),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9);
+      border-radius: 26px;
+    }
+
+    .clay-kpi-blue {
+      background: linear-gradient(145deg, #E6F4FF 0%, #D5ECFF 100%);
+      box-shadow: 0 12px 24px -6px rgba(56, 152, 255, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 24px;
+    }
+    .clay-kpi-rose {
+      background: linear-gradient(145deg, #FFEBEF 0%, #FCDCE1 100%);
+      box-shadow: 0 12px 24px -6px rgba(244, 96, 136, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 24px;
+    }
+    .clay-kpi-amber {
+      background: linear-gradient(145deg, #FFF6DF 0%, #FDECC4 100%);
+      box-shadow: 0 12px 24px -6px rgba(245, 176, 37, 0.16), inset 0 2px 4px rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 24px;
+    }
+    .clay-kpi-mint {
+      background: linear-gradient(145deg, #E3FBEF 0%, #CEF5E3 100%);
+      box-shadow: 0 12px 24px -6px rgba(34, 197, 130, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 24px;
+    }
+
+    .clay-icon-3d {
+      box-shadow:
+        0 8px 16px -4px rgba(0, 0, 0, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.55),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .clay-btn-purple {
+      background: linear-gradient(135deg, #9B7BF8 0%, #7C5CE6 100%);
+      box-shadow:
+        0 10px 20px -5px rgba(124, 92, 230, 0.45),
+        inset 0 2px 3px rgba(255, 255, 255, 0.45);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .clay-btn-purple:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 24px -5px rgba(124, 92, 230, 0.55), inset 0 2px 3px rgba(255, 255, 255, 0.55);
+    }
+    .clay-btn-purple:active {
+      transform: scale(0.97);
+    }
+
+    .clay-btn-login {
+      background: linear-gradient(135deg, #A4CDFA 0%, #88B9F7 100%);
+      box-shadow:
+        0 10px 22px -6px rgba(136, 185, 247, 0.6),
+        inset 0 2px 3px rgba(255, 255, 255, 0.65);
+      transition: all 0.2s ease;
+    }
+    .clay-btn-login:hover {
+      background: linear-gradient(135deg, #92C2F9 0%, #74ADF5 100%);
+      transform: translateY(-1px);
+    }
+
+    .clay-hero-banner {
+      background: linear-gradient(125deg, #FDE8EE 0%, #F5E6FE 52%, #EAE6FF 100%);
+      box-shadow:
+        0 14px 28px -8px rgba(140, 103, 246, 0.12),
+        inset 0 2px 5px rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
+    }
+
+    .clay-Input-pill {
+      background-color: #EEF2F9;
+      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.04);
+      border: 1.5px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .clay-Input-pill:focus-within {
+      background-color: #FFFFFF;
+      border-color: #9BC5F9;
+      box-shadow: 0 0 0 4px rgba(155, 197, 249, 0.22);
+    }
+
+    .clay-promo-pink {
+      background: linear-gradient(145deg, #FFD6DF 0%, #FFC2D1 100%);
+      box-shadow:
+        0 12px 24px -6px rgba(45, 35, 110, 0.25),
+        inset 0 2px 5px rgba(255, 255, 255, 0.75);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 24px;
+    }
+
+    /* Tabel Laporan Resmi Sesuai Gambar Contoh & Pas Kertas A4 Tanpa Terpotong */
+    .formal-pdf-table {
+      width: 100% !important;
+      max-width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: collapse !important;
+      border: 1.5px solid #1E293B !important;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #0F172A;
+      box-sizing: border-box;
+    }
+    .formal-pdf-table th {
+      background-color: #F1F5F9 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      border: 1px solid #1E293B !important;
+      padding: 8px 6px !important;
+      font-weight: 700;
+      font-size: 10.5px;
+      line-height: 1.25;
+      color: #0F172A;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
+    .formal-pdf-table td {
+      border: 1px solid #1E293B !important;
+      padding: 8px 6px !important;
+      font-size: 10.5px;
+      line-height: 1.3;
+      vertical-align: middle;
+      color: #0F172A;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
+    .formal-pdf-table tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .kop-double-line {
+      border-top: 2.5px solid #000000;
+      border-bottom: 1px solid #000000;
+      height: 5px;
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* Responsive Navigation Rules */
+    @media (max-width: 1023px) {
+      #desktop-sidebar {
+        display: none !important;
+      }
+      #mobile-bottom-nav {
+        display: flex !important;
+      }
+      #main-workspace-area {
+        padding-bottom: 100px !important;
+      }
+    }
+    @media (min-width: 1024px) {
+      #desktop-sidebar {
+        display: flex !important;
+      }
+      #mobile-bottom-nav {
+        display: none !important;
+      }
+    }
+
+    /* Formal Clean Print Styling (A4 Pas Tanpa Terpotong) */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm 10mm;
+      }
+      html, body {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #FFFFFF !important;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #app-master-wrapper {
+        position: static !important;
+        overflow: visible !important;
+        background: #FFFFFF !important;
+        height: auto !important;
+        width: 100% !important;
+      }
+      #printable-report-area,
+      #printable-report-area * {
+        visibility: visible !important;
+      }
+      #printable-report-area {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        box-sizing: border-box !important;
+      }
+      #printable-table-wrapper {
+        overflow: visible !important;
+        width: 100% !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#FAF7F5] antialiased selection:bg-indigo-500 selection:text-white">
+
+  <div id="app-master-wrapper">
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[1000005] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- PDF VIEWER MODAL -->
+    <div id="pdf-preview-modal" class="hidden fixed inset-0 z-[1000002] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+      <div class="bg-white rounded-3xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl overflow-hidden border-2 border-white">
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+              <i class="ph-fill ph-file-pdf text-2xl"></i>
+            </div>
+            <div>
+              <h4 id="pdf-modal-title" class="font-bold text-slate-800 text-sm sm:text-base">Pratinjau Dokumen PDF</h4>
+              <p class="text-xs text-slate-500">Lampiran Surat Izin / Cuti Guru</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a id="pdf-modal-download" href="#" download="Surat_Izin.pdf" class="px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold hover:bg-indigo-100 transition flex items-center gap-1.5">
+              <i class="ph-bold ph-download-simple"></i> Unduh PDF
+            </a>
+            <button onclick="window.closePdfModal()" class="w-9 h-9 rounded-full bg-slate-200/70 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center text-slate-600 transition">
+              <i class="ph-bold ph-x text-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 bg-slate-100 relative">
+          <iframe id="pdf-modal-iframe" class="w-full h-full border-0" title="PDF Viewer"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEACHER FORM MODAL (ADD / EDIT) -->
+    <div id="teacher-modal" class="hidden fixed inset-0 z-[1000001] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+      <div class="clay-card-white max-w-xl w-full p-6 sm:p-8 max-h-[92vh] overflow-y-auto shadow-2xl">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center clay-icon-3d">
+              <i class="ph-fill ph-chalkboard-teacher text-2xl"></i>
+            </div>
+            <div>
+              <h3 id="teacher-modal-title" class="text-lg font-extrabold text-slate-800">Tambah Data Guru / Staf</h3>
+              <p class="text-xs text-slate-500">SMP Negeri 42 Buru • Akses Login Otomatis</p>
+            </div>
+          </div>
+          <button onclick="window.closeTeacherModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center text-slate-500 transition">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+
+        <form id="teacher-form" class="mt-5 space-y-4">
+          <input type="hidden" id="teacher-id" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">NIP / NUPTK <span class="text-rose-500">*</span></label>
+              <input type="text" id="teacher-nip" required placeholder="Contoh: 19870308" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">Nama Lengkap & Gelar <span class="text-rose-500">*</span></label>
+              <input type="text" id="teacher-name" required placeholder="Nama lengkap beserta gelar" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">Jabatan / Guru Mapel <span class="text-rose-500">*</span></label>
+              <input type="text" id="teacher-position" required placeholder="Contoh: Guru-MTK" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">Pangkat / Golongan</label>
+              <input type="text" id="teacher-rank" placeholder="Contoh: Penata Muda / III.a" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">Status Kepegawaian</label>
+              <select id="teacher-status" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none">
+                <option value="PNS">PNS</option>
+                <option value="PPPK">PPPK</option>
+                <option value="Honorer">Guru Honorer / GTT</option>
+                <option value="Tendik">Tenaga Kependidikan / Staf</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">No. WhatsApp / Telepon</label>
+              <input type="text" id="teacher-phone" placeholder="Contoh: 081247001234" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-sm font-medium text-slate-800 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-3">
+            <div class="flex items-center gap-2 text-indigo-700 text-xs font-bold">
+              <i class="ph-fill ph-key text-base"></i> Kredensial Login Guru (Validasi Tabel Database)
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Username / ID Login <span class="text-rose-500">*</span></label>
+                <input type="text" id="teacher-username" required placeholder="Username atau NIP" class="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Password Login <span class="text-rose-500">*</span></label>
+                <input type="text" id="teacher-password" required placeholder="Password guru" class="w-full px-3.5 py-2 rounded-xl bg-white border border-indigo-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-3">
+            <button type="button" onclick="window.closeTeacherModal()" class="px-5 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+              Batal
+            </button>
+            <button type="submit" class="px-6 py-2.5 rounded-full clay-btn-purple text-white text-xs font-bold flex items-center gap-2">
+              <i class="ph-bold ph-floppy-disk text-base"></i> Simpan Data Guru
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 1: SPLIT-SCREEN 3D CLAY LOGIN SCREEN (Sesuai Gambar Referensi 2) -->
+    <!-- =================================================================== -->
+    <section id="login-view" class="min-h-screen w-full bg-[#F6F8FC] flex items-center justify-center p-4 sm:p-6 lg:p-10 no-print">
+      <div class="max-w-5xl w-full bg-white rounded-[36px] shadow-[0_25px_70px_-15px_rgba(30,27,57,0.09)] border-2 border-white p-6 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+        <!-- Left Column: Clean Form Input (Pill Inputs & Pastel Sky Blue Button) -->
+        <div class="lg:col-span-6 flex flex-col justify-center px-2 sm:px-6">
+          <!-- Brand Badge -->
+          <div class="inline-flex items-center gap-2.5 mb-6">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-400 flex items-center justify-center text-white shadow-md clay-icon-3d">
+              <i class="ph-fill ph-student text-xl"></i>
+            </div>
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 block">Sistem Kehadiran Digital</span>
+              <span id="login-school-title" class="text-sm font-extrabold text-slate-800">SMP Negeri 42 Buru</span>
+            </div>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            Welcome back <span class="inline-block animate-bounce">👋</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5 mb-6">
+            Silakan pilih peran akses dan masukkan akun Anda untuk melanjutkan.
+          </p>
+
+          <!-- Role Switcher Tabs (Hybrid Login: Guru vs Admin) -->
+          <div class="grid grid-cols-2 gap-2 p-1.5 rounded-full bg-[#EEF2F9] mb-6">
+            <button type="button" id="tab-role-guru" onclick="window.switchLoginRole('guru')" class="py-2.5 px-4 rounded-full text-xs font-extrabold transition-all bg-white text-slate-800 shadow-sm flex items-center justify-center gap-1.5">
+              <i class="ph-fill ph-identification-badge text-indigo-500 text-base"></i> Guru / Karyawan
+            </button>
+            <button type="button" id="tab-role-admin" onclick="window.switchLoginRole('admin')" class="py-2.5 px-4 rounded-full text-xs font-extrabold transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5">
+              <i class="ph-fill ph-shield-check text-sky-500 text-base"></i> Admin (Supabase Auth)
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="hybrid-login-form" class="space-y-4">
+            <div>
+              <div class="clay-Input-pill rounded-full px-5 py-3.5 flex items-center justify-between">
+                <input
+                  type="text"
+                  id="login-identifier"
+                  required
+                  placeholder="Masukkan Username atau NIP Guru"
+                  class="bg-transparent w-full text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none"
+                />
+                <span class="text-slate-400 ml-3 flex-shrink-0">
+                  <i id="login-identifier-icon" class="ph-bold ph-identification-card text-lg"></i>
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div class="clay-Input-pill rounded-full px-5 py-3.5 flex items-center justify-between">
+                <input
+                  type="password"
+                  id="login-password"
+                  required
+                  placeholder="Masukkan Password"
+                  class="bg-transparent w-full text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none"
+                />
+                <button type="button" onclick="window.togglePasswordVisibility()" class="text-slate-400 hover:text-slate-600 ml-3 flex-shrink-0 focus:outline-none">
+                  <i id="login-eye-icon" class="ph-bold ph-eye-slash text-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="btn-submit-login"
+              class="w-full py-3.5 rounded-full clay-btn-login text-white font-extrabold text-sm tracking-wide shadow-md mt-2 flex items-center justify-center gap-2"
+            >
+              <span>Log In</span>
+              <i class="ph-bold ph-arrow-right"></i>
+            </button>
+          </form>
+
+          <!-- Mandatory Developer Attribution Credit -->
+          <div class="mt-8 pt-5 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-400 font-medium">
+              Aplikasi ini dikembangkan oleh : <span class="font-extrabold text-slate-700">Admin SMPN 42</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Column: 3D Clay Character & Floating Cards Artwork (Sesuai Gambar 2) -->
+        <div class="lg:col-span-6 relative bg-gradient-to-br from-[#F4F7FF] via-[#EEF2FF] to-[#F8F5FF] rounded-[30px] p-6 sm:p-8 min-h-[380px] sm:min-h-[450px] flex flex-col justify-between overflow-hidden border border-indigo-50/80">
+          <!-- Top Brand Tag -->
+          <div class="relative z-10 flex items-center justify-between">
+            <div class="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm border border-white">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="text-xs font-extrabold text-slate-700">SMPN 42 BURU • E-PRESENSI</span>
+            </div>
+            <div class="w-9 h-9 rounded-2xl bg-white/80 shadow-sm flex items-center justify-center text-indigo-500 font-bold text-xs">
+              3D
+            </div>
+          </div>
+
+          <!-- Floating 3D Decorative Shapes & Character Illustration -->
+          <div class="relative z-10 my-auto py-4 flex flex-col items-center justify-center">
+            <!-- Floating 3D Star Left -->
+            <div class="absolute left-4 top-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-400 text-white flex items-center justify-center shadow-lg -rotate-12 clay-icon-3d">
+              <i class="ph-fill ph-sparkle text-2xl"></i>
+            </div>
+
+            <!-- Floating 3D GPS Pin Right -->
+            <div class="absolute right-4 top-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-violet-600 text-white flex flex-col items-center justify-center shadow-lg rotate-12 clay-icon-3d">
+              <i class="ph-fill ph-map-pin-line text-2xl"></i>
+              <span class="text-[9px] font-extrabold">RADIUS</span>
+            </div>
+
+            <!-- Central 3D Styled Character & Laptop SVG Illustration -->
+            <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center">
+              <!-- Soft Glowing Backdrop Cards -->
+              <div class="absolute inset-4 rounded-3xl bg-gradient-to-tr from-indigo-200/60 to-sky-200/60 rotate-6 blur-[1px]"></div>
+              <div class="absolute inset-4 rounded-3xl bg-white/80 backdrop-blur-md shadow-xl border-2 border-white flex flex-col items-center justify-center p-5 text-center">
+                <!-- 3D Avatar Circle -->
+                <div class="w-24 h-24 rounded-full bg-gradient-to-b from-indigo-500 to-slate-900 p-1 shadow-xl mb-3 relative">
+                  <div class="w-full h-full rounded-full bg-amber-100 flex items-center justify-center overflow-hidden">
+                    <svg viewBox="0 0 120 120" class="w-20 h-20">
+                      <!-- 3D Stylized Teacher Character with Glasses & Laptop -->
+                      <circle cx="60" cy="42" r="22" fill="#F4C29F" />
+                      <path d="M36 36 C36 18, 84 18, 84 36 C80 28, 40 28, 36 36 Z" fill="#3B2F2F" />
+                      <!-- Glasses -->
+                      <circle cx="51" cy="42" r="7" fill="none" stroke="#1E1B39" stroke-width="2.8" />
+                      <circle cx="69" cy="42" r="7" fill="none" stroke="#1E1B39" stroke-width="2.8" />
+                      <line x1="58" y1="42" x2="62" y2="42" stroke="#1E1B39" stroke-width="2.8" />
+                      <!-- Smile -->
+                      <path d="M54 51 Q60 56 66 51" fill="none" stroke="#1E1B39" stroke-width="2.5" stroke-linecap="round" />
+                      <!-- Turtleneck Suit -->
+                      <path d="M30 105 C30 75, 90 75, 90 105 Z" fill="#2A263D" />
+                    </svg>
+                  </div>
+                  <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-emerald-400 text-white flex items-center justify-center shadow-md border-2 border-white">
+                    <i class="ph-bold ph-check text-sm"></i>
+                  </div>
+                </div>
+                <span class="text-sm font-extrabold text-slate-800">Presensi Geolocation</span>
+                <span class="text-[11px] text-slate-500 font-medium mt-0.5">Akurat dengan Radius Titik Koordinat Sekolah & Cetak PDF Resmi</span>
+
+                <!-- Floating Mini Pill Badges -->
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 text-[10px] font-extrabold">GPS Haversine</span>
+                  <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">Upload PDF Izin</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Glass Info Strip -->
+          <div class="relative z-10 bg-white/85 backdrop-blur-md rounded-2xl p-3.5 border border-white shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                <i class="ph-fill ph-clock-countdown text-lg"></i>
+              </div>
+              <div>
+                <p class="text-xs font-extrabold text-slate-800">Jam Kerja Otomatis (WIT)</p>
+                <p class="text-[11px] text-slate-500">Kabupaten Buru • Provinsi Maluku</p>
+              </div>
+            </div>
+            <span id="login-live-clock" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">07:15 WIT</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: MAIN APPLICATION WORKSPACE (Sesuai Gambar Referensi 1)      -->
+    <!-- =================================================================== -->
+    <div id="main-app-view" class="hidden min-h-screen w-full p-3 sm:p-5 lg:p-6 flex flex-col lg:flex-row gap-6 max-w-[1600px] mx-auto">
+
+      <!-- DESKTOP LEFT FLOATING 3D CLAY SIDEBAR -->
+      <aside id="desktop-sidebar" class="w-64 flex-shrink-0 clay-sidebar rounded-[34px] p-5 flex flex-col justify-between text-white sticky top-6 h-[calc(100vh-3rem)] select-none no-print">
+        <div>
+          <!-- Top 3D Badge & Greeting -->
+          <div class="flex flex-col items-center text-center pt-2 pb-5 border-b border-white/15">
+            <div class="w-20 h-20 rounded-full bg-white/95 p-2 shadow-xl flex items-center justify-center mb-3 relative">
+              <img id="sidebar-school-logo" src="https://placehold.co/120x120/1E3A8A/ffffff?text=SMP42" onerror="this.src='https://placehold.co/120x120/7D73E0/ffffff?text=SMP42'" alt="Logo Sekolah" class="w-14 h-14 rounded-2xl object-contain" />
+              <span class="absolute -bottom-1 right-1 w-6 h-6 rounded-full bg-emerald-400 border-2 border-white flex items-center justify-center text-[10px] font-extrabold text-white shadow">✓</span>
+            </div>
+            <h2 id="sidebar-app-title" class="font-extrabold text-base tracking-tight leading-snug">SMPN 42 Buru</h2>
+            <p id="sidebar-user-greeting" class="text-xs text-indigo-100 font-semibold mt-0.5">Hi, Admin! 👋</p>
+            <span id="sidebar-role-badge" class="mt-1.5 px-3 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold uppercase tracking-wider">Administrator</span>
+          </div>
+
+          <!-- Navigation Links -->
+          <nav class="mt-5 space-y-1.5" id="sidebar-nav-list">
+            <button onclick="window.navigateMenu('dashboard')" data-menu="dashboard" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-extrabold transition-all bg-[#FAF7F5] text-slate-900 shadow-md">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-house text-lg text-indigo-600"></i>
+                <span>Dashboard</span>
+              </span>
+            </button>
+
+            <button onclick="window.navigateMenu('teachers')" data-menu="teachers" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-users-three text-lg"></i>
+                <span>Data Guru</span>
+              </span>
+              <span id="nav-badge-teachers" class="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold">0</span>
+            </button>
+
+            <button onclick="window.navigateMenu('attendance')" data-menu="attendance" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-map-pin-area text-lg"></i>
+                <span>Absensi & Radius</span>
+              </span>
+              <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+            </button>
+
+            <button onclick="window.navigateMenu('leaves')" data-menu="leaves" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-envelope-open text-lg"></i>
+                <span>Izin & Cuti (PDF)</span>
+              </span>
+              <span id="nav-badge-leaves" class="px-2 py-0.5 rounded-full bg-rose-400 text-white text-[10px] font-extrabold shadow">0</span>
+            </button>
+
+            <button onclick="window.navigateMenu('reports')" data-menu="reports" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-printer text-lg"></i>
+                <span>Laporan / PDF</span>
+              </span>
+            </button>
+
+            <button onclick="window.navigateMenu('settings')" data-menu="settings" class="nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15">
+              <span class="flex items-center gap-3">
+                <i class="ph-fill ph-gear-six text-lg"></i>
+                <span>Pengaturan</span>
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Bottom Pastel Pink 3D Clay Card inside Sidebar (Sesuai Gambar 1) -->
+        <div class="clay-promo-pink p-4 text-center text-slate-900 mt-4">
+          <div class="w-11 h-11 rounded-2xl bg-amber-300 text-amber-900 mx-auto flex items-center justify-center shadow-md mb-2 clay-icon-3d">
+            <i class="ph-fill ph-crown text-2xl"></i>
+          </div>
+          <h4 class="font-extrabold text-xs">Radius GPS Aktif</h4>
+          <p id="sidebar-radius-label" class="text-[11px] text-slate-600 font-medium mt-0.5 leading-tight">
+            Batas jarak: 150 Meter dari titik sekolah
+          </p>
+          <button onclick="window.handleLogout()" class="mt-3 w-full py-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-extrabold text-xs shadow-md hover:opacity-95 transition flex items-center justify-center gap-1.5">
+            <i class="ph-bold ph-sign-out"></i> Keluar Akun
+          </button>
+        </div>
+      </aside>
+
+      <!-- MOBILE FLOATING BOTTOM NAVIGATION BAR -->
+      <nav id="mobile-bottom-nav" class="hidden fixed bottom-3 left-3 right-3 z-[999999] clay-sidebar rounded-3xl px-2 py-2 items-center justify-around text-white shadow-2xl no-print">
+        <button onclick="window.navigateMenu('dashboard')" data-menu="dashboard" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl bg-white text-indigo-900 font-extrabold text-[10px]">
+          <i class="ph-fill ph-house text-lg"></i>
+          <span>Beranda</span>
+        </button>
+        <button onclick="window.navigateMenu('teachers')" data-menu="teachers" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]">
+          <i class="ph-fill ph-users-three text-lg"></i>
+          <span>Guru</span>
+        </button>
+        <button onclick="window.navigateMenu('attendance')" data-menu="attendance" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]">
+          <i class="ph-fill ph-map-pin-area text-lg"></i>
+          <span>Absen</span>
+        </button>
+        <button onclick="window.navigateMenu('leaves')" data-menu="leaves" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]">
+          <i class="ph-fill ph-envelope-open text-lg"></i>
+          <span>Izin</span>
+        </button>
+        <button onclick="window.navigateMenu('reports')" data-menu="reports" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]">
+          <i class="ph-fill ph-printer text-lg"></i>
+          <span>PDF</span>
+        </button>
+        <button onclick="window.navigateMenu('settings')" data-menu="settings" class="mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]">
+          <i class="ph-fill ph-gear-six text-lg"></i>
+          <span>Setting</span>
+        </button>
+      </nav>
+
+      <!-- MAIN WORKSPACE CONTENT AREA -->
+      <main id="main-workspace-area" class="flex-1 min-w-0 flex flex-col gap-6">
+
+        <!-- TOP HEADER BAR (Title + Pill Search + Notification Bell + User Profile) -->
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/75 backdrop-blur-md px-5 py-4 rounded-[28px] border-2 border-white shadow-sm no-print">
+          <div>
+            <h1 id="top-page-title" class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+            <p id="top-page-subtitle" class="text-xs text-slate-500 font-medium">Ringkasan kehadiran real-time SMP Negeri 42 Buru</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Pill Search Input -->
+            <div class="relative flex-1 sm:w-72">
+              <i class="ph-bold ph-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+              <input
+                type="text"
+                id="global-search-input"
+                oninput="window.handleGlobalSearch(this.value)"
+                placeholder="Cari nama guru, NIP, status..."
+                class="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#FAF7F5] border border-slate-200/80 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-300 shadow-inner"
+              />
+            </div>
+
+            <!-- Notification Bell with Pink Counter -->
+            <button onclick="window.navigateMenu('leaves')" title="Pengajuan Izin Menunggu" class="relative w-11 h-11 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-indigo-500 hover:scale-105 transition">
+              <i class="ph-fill ph-bell text-xl"></i>
+              <span id="header-notif-badge" class="-top-1 -right-1 absolute w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow">0</span>
+            </button>
+
+            <!-- User Profile Pill -->
+            <div class="flex items-center gap-2.5 bg-white pl-1.5 pr-3.5 py-1.5 rounded-full shadow-md border border-slate-100">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white flex items-center justify-center font-extrabold text-xs">
+                <i class="ph-fill ph-user"></i>
+              </div>
+              <div class="hidden md:block text-left">
+                <p id="header-user-name" class="text-xs font-extrabold text-slate-800 leading-none">Admin</p>
+                <p id="header-user-role" class="text-[10px] font-semibold text-indigo-500 mt-0.5">Operator</p>
+              </div>
+              <button onclick="window.handleLogout()" title="Keluar" class="lg:hidden ml-1 text-rose-500 hover:text-rose-700">
+                <i class="ph-bold ph-sign-out text-base"></i>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- =============================================================== -->
+        <!-- MENU 1: DASHBOARD INTERAKTIF (100% Sesuai Layout Gambar 1)      -->
+        <!-- =============================================================== -->
+        <section id="view-dashboard" class="space-y-6 no-print">
+
+          <!-- Hero Banner Pastel Pink/Purple with 3D Cart/School Visual -->
+          <div class="clay-hero-banner p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div class="max-w-lg z-10">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 text-indigo-600 text-[11px] font-extrabold mb-3 shadow-sm">
+                <i class="ph-fill ph-sparkle text-amber-500"></i>
+                <span id="hero-kop-badge">PEMERINTAH KABUPATEN BURU</span>
+              </div>
+              <h2 id="hero-school-heading" class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Disiplin & Transparan Bersama SMP Negeri 42 Buru
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
+                Rekam kehadiran masuk & pulang berbasis radius lokasi GPS, kelola surat izin/cuti berlampiran PDF, dan cetak laporan resmi ber-kop instansi secara instan.
+              </p>
+              <div class="mt-5 flex flex-wrap items-center gap-3">
+                <button onclick="window.navigateMenu('attendance')" class="px-6 py-3 rounded-full clay-btn-purple text-white text-xs sm:text-sm font-extrabold flex items-center gap-2">
+                  <i class="ph-bold ph-plus-circle text-lg"></i> + Absen Sekarang
+                </button>
+                <button onclick="window.navigateMenu('reports')" class="px-5 py-3 rounded-full bg-white/90 hover:bg-white text-slate-800 text-xs sm:text-sm font-extrabold shadow-sm border border-white transition flex items-center gap-2">
+                  <i class="ph-bold ph-printer text-indigo-600 text-lg"></i> Cetak Laporan PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Right 3D Decorative Composition -->
+            <div class="relative z-10 flex items-center justify-center">
+              <div class="w-44 h-36 sm:w-56 sm:h-40 rounded-3xl bg-white/70 backdrop-blur-md border-2 border-white shadow-xl p-4 flex flex-col justify-between relative">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-xl bg-rose-100 text-rose-600 text-[10px] font-extrabold">LIVE WIT</span>
+                  <i class="ph-fill ph-SealCheck text-emerald-500 text-xl"></i>
+                </div>
+                <div class="my-auto text-center">
+                  <p id="dashboard-big-clock" class="text-2xl sm:text-3xl font-extrabold text-indigo-950 tracking-tight">07:30:00</p>
+                  <p id="dashboard-big-date" class="text-[11px] font-bold text-slate-500 mt-0.5">Senin, 2 November 2026</p>
+                </div>
+                <div class="flex items-center justify-between text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl">
+                  <span>Status Lokasi:</span>
+                  <span class="text-emerald-600">Aktif • GPS Ready</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Pastel Clay KPI Cards (Ice Blue, Pastel Rose, Warm Amber, Mint Green) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <!-- Card 1: Ice Blue -->
+            <div class="clay-kpi-blue p-5 flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-400 text-white flex items-center justify-center clay-icon-3d mb-4">
+                <i class="ph-fill ph-users-three text-2xl"></i>
+              </div>
+              <div>
+                <p id="kpi-label-teachers" class="text-xs font-bold text-slate-600">Total Guru & Staf</p>
+                <h3 id="kpi-total-teachers" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                <p id="kpi-sub-teachers" class="text-[11px] font-extrabold text-emerald-600 mt-2 flex items-center gap-1">
+                  <i class="ph-bold ph-trend-up"></i> <span>100% Terdaftar Aktif</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Card 2: Pastel Rose -->
+            <div class="clay-kpi-rose p-5 flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white flex items-center justify-center clay-icon-3d mb-4">
+                <i class="ph-fill ph-fingerprint text-2xl"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-600">Hadir Hari Ini</p>
+                <h3 id="kpi-present-today" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                <p id="kpi-present-sub" class="text-[11px] font-extrabold text-emerald-600 mt-2 flex items-center gap-1">
+                  <i class="ph-bold ph-check-circle"></i> <span>Tepat Waktu & Sesuai Radius</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Card 3: Warm Amber -->
+            <div class="clay-kpi-amber p-5 flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 text-white flex items-center justify-center clay-icon-3d mb-4">
+                <i class="ph-fill ph-envelope-open text-2xl"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-600">Pengajuan Izin / Cuti</p>
+                <h3 id="kpi-leave-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                <p class="text-[11px] font-extrabold text-amber-700 mt-2 flex items-center gap-1">
+                  <i class="ph-bold ph-file-pdf"></i> <span>Lampiran PDF & Link Surat</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Card 4: Mint Green -->
+            <div class="clay-kpi-mint p-5 flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center clay-icon-3d mb-4">
+                <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-600">Tingkat Kehadiran</p>
+                <h3 id="kpi-attendance-rate" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0%</h3>
+                <p class="text-[11px] font-extrabold text-emerald-600 mt-2 flex items-center gap-1">
+                  <i class="ph-bold ph-shield-check"></i> <span>Akumulasi Bulan Berjalan</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle Row: 2 Charts (Bar Chart & Donut Chart - Sesuai Gambar 1) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Bar Chart: Statistik Kehadiran Mingguan -->
+            <div class="lg:col-span-7 clay-card-white p-6 flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Grafik Kehadiran Mingguan</h3>
+                  <p class="text-xs text-slate-400 font-medium">Jumlah guru hadir per hari (Senin - Sabtu)</p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">Minggu Ini ▾</span>
+              </div>
+
+              <div id="weekly-bar-chart" class="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-slate-100">
+                <!-- Diisi dinamis oleh JS -->
+              </div>
+            </div>
+
+            <!-- Donut Chart: Komposisi Status Kehadiran -->
+            <div class="lg:col-span-5 clay-card-white p-6 flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Kategori Kehadiran</h3>
+                  <p class="text-xs text-slate-400 font-medium">Proporsi status presensi & izin</p>
+                </div>
+                <button onclick="window.navigateMenu('reports')" class="px-3 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold transition">Detail</button>
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-center justify-around gap-6 my-auto py-2">
+                <!-- SVG Donut Chart -->
+                <div class="relative w-36 h-36 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" class="w-36 h-36 -rotate-90">
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" stroke-width="6"></circle>
+                    <circle id="donut-seg-hadir" cx="18" cy="18" r="14" fill="none" stroke="#8C67F6" stroke-width="6" stroke-dasharray="65 100" stroke-linecap="round"></circle>
+                    <circle id="donut-seg-telat" cx="18" cy="18" r="14" fill="none" stroke="#F472B6" stroke-width="6" stroke-dasharray="15 100" stroke-dashoffset="-65"></circle>
+                    <circle id="donut-seg-izin" cx="18" cy="18" r="14" fill="none" stroke="#FBBF24" stroke-width="6" stroke-dasharray="12 100" stroke-dashoffset="-80"></circle>
+                    <circle id="donut-seg-cuti" cx="18" cy="18" r="14" fill="none" stroke="#34D399" stroke-width="6" stroke-dasharray="8 100" stroke-dashoffset="-92"></circle>
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span id="donut-center-total" class="text-lg font-extrabold text-slate-800">100%</span>
+                    <span class="text-[10px] font-bold text-slate-400">Terekam</span>
+                  </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="space-y-2.5 text-xs w-full sm:w-auto">
+                  <div class="flex items-center justify-between gap-6">
+                    <span class="flex items-center gap-2 font-semibold text-slate-600"><span class="w-3 h-3 rounded-full bg-[#8C67F6]"></span> Hadir Tepat</span>
+                    <span id="legend-pct-hadir" class="font-extrabold text-slate-800">0%</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-6">
+                    <span class="flex items-center gap-2 font-semibold text-slate-600"><span class="w-3 h-3 rounded-full bg-[#F472B6]"></span> Terlambat</span>
+                    <span id="legend-pct-telat" class="font-extrabold text-slate-800">0%</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-6">
+                    <span class="flex items-center gap-2 font-semibold text-slate-600"><span class="w-3 h-3 rounded-full bg-[#FBBF24]"></span> Izin / Sakit</span>
+                    <span id="legend-pct-izin" class="font-extrabold text-slate-800">0%</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-6">
+                    <span class="flex items-center gap-2 font-semibold text-slate-600"><span class="w-3 h-3 rounded-full bg-[#34D399]"></span> Cuti / Dinas</span>
+                    <span id="legend-pct-cuti" class="font-extrabold text-slate-800">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Recent Attendance Log & Top Punctual Teachers (Sesuai Gambar 1) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Left: Recent Attendance -->
+            <div class="lg:col-span-7 clay-card-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Aktivitas Absensi Terbaru</h3>
+                  <p class="text-xs text-slate-400 font-medium">Log masuk & pulang beserta jarak lokasi</p>
+                </div>
+                <button onclick="window.navigateMenu('attendance')" class="px-3 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold transition">Lihat Semua</button>
+              </div>
+              <div id="dashboard-recent-attendance" class="space-y-3">
+                <!-- Diisi dinamis oleh JS -->
+              </div>
+            </div>
+
+            <!-- Right: Best / Top Punctual Teachers -->
+            <div class="lg:col-span-5 clay-card-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 id="dash-top-teachers-title" class="font-extrabold text-base text-slate-900">Guru & Staf Terdisiplin</h3>
+                  <p id="dash-top-teachers-subtitle" class="text-xs text-slate-400 font-medium">Berdasarkan ketepatan waktu & kehadiran</p>
+                </div>
+                <button id="btn-dash-teachers" onclick="window.navigateMenu('teachers')" class="px-3 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold transition">Data Guru</button>
+              </div>
+              <div id="dashboard-top-teachers" class="space-y-3">
+                <!-- Diisi dinamis oleh JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Purple Callout Strip (Sesuai Festival Banner di Gambar 1) -->
+          <div class="rounded-[26px] bg-gradient-to-r from-[#D8CCFF] via-[#E5DCFF] to-[#D5C6FF] p-5 sm:px-8 border-2 border-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-rose-400 text-white flex items-center justify-center shadow-md clay-icon-3d flex-shrink-0">
+                <i class="ph-fill ph-file-text text-2xl"></i>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-sm sm:text-base text-slate-900">Siap Cetak Rekapitulasi Bulanan SMP Negeri 42 Buru?</h4>
+                <p class="text-xs text-slate-600 font-medium">Dilengkapi Kop Surat Resmi, Logo Kabupaten Buru, Logo Sekolah & Tanda Tangan Kepala Sekolah.</p>
+              </div>
+            </div>
+            <button onclick="window.navigateMenu('reports')" class="px-6 py-2.5 rounded-full clay-btn-purple text-white text-xs font-extrabold whitespace-nowrap flex items-center gap-2">
+              <span>Buka Cetak PDF</span>
+              <i class="ph-bold ph-arrow-right"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MENU 2: INPUT DATA GURU & KARYAWAN                              -->
+        <!-- =============================================================== -->
+        <section id="view-teachers" class="hidden space-y-6 no-print">
+          <div class="clay-card-white p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Manajemen Data Guru & Karyawan</h2>
+                <p class="text-xs text-slate-500 font-medium">Kelola daftar pendidik, NIP, jabatan, dan akun login absensi SMP Negeri 42 Buru</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <select id="filter-teacher-status" onchange="window.renderTeachersTable()" class="px-4 py-2.5 rounded-full bg-[#EEF2F9] text-xs font-bold text-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Status</option>
+                  <option value="PNS">PNS</option>
+                  <option value="PPPK">PPPK</option>
+                  <option value="Honorer">Honorer / GTT</option>
+                  <option value="Tendik">Tendik / Staf</option>
+                </select>
+                <button onclick="window.openTeacherModal()" class="px-5 py-2.5 rounded-full clay-btn-purple text-white text-xs font-extrabold flex items-center gap-2">
+                  <i class="ph-bold ph-user-plus text-base"></i> + Tambah Guru Baru
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto mt-5">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <th class="py-3.5 px-4">Guru / NIP</th>
+                    <th class="py-3.5 px-4">Jabatan / Mapel</th>
+                    <th class="py-3.5 px-4">Pangkat / Status</th>
+                    <th class="py-3.5 px-4">Akun Login (User / Pass)</th>
+                    <th class="py-3.5 px-4">Telepon</th>
+                    <th class="py-3.5 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="teachers-table-body" class="divide-y divide-slate-100 text-xs">
+                  <!-- Diisi dinamis oleh JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MENU 3: ABSENSI (MASUK & PULANG) + RADIUS JARAK LOKASI GPS      -->
+        <!-- =============================================================== -->
+        <section id="view-attendance" class="hidden space-y-6 no-print">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Column: Live Clock, Teacher Selector & Check-In/Out Action -->
+            <div class="lg:col-span-6 clay-card-white p-6 space-y-5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-2xl bg-indigo-500 text-white flex items-center justify-center clay-icon-3d">
+                    <i class="ph-fill ph-fingerprint text-2xl"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-extrabold text-base text-slate-900">Terminal Presensi Masuk & Pulang</h3>
+                    <p class="text-xs text-slate-400 font-medium">Validasi Radius Lokasi Geolocation SMP Negeri 42 Buru</p>
+                  </div>
+                </div>
+                <span id="att-live-time-badge" class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-extrabold text-xs">07:30 WIT</span>
+              </div>
+
+              <!-- Pilih Guru (Otomatis Terkunci jika Login sebagai Guru) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Identitas Guru / Karyawan</label>
+                <select id="att-teacher-select" onchange="window.updateAttendanceCardState()" class="w-full px-4 py-3 rounded-2xl clay-Input-pill text-sm font-bold text-slate-800 focus:outline-none">
+                  <!-- Diisi dinamis oleh JS -->
+                </select>
+              </div>
+
+              <!-- Radius Meter Visual Box -->
+              <div id="att-radius-status-box" class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200/80 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                  <div id="att-radius-icon" class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md flex-shrink-0">
+                    <i class="ph-fill ph-map-pin-area text-2xl"></i>
+                  </div>
+                  <div>
+                    <span id="att-radius-badge" class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900">DI DALAM RADIUS SEKOLAH</span>
+                    <h4 id="att-distance-text" class="text-base font-extrabold text-slate-900 mt-1">Jarak Anda: 24 Meter dari Sekolah</h4>
+                    <p id="att-coords-text" class="text-[11px] text-slate-500 font-medium">Koordinat: -3.245100, 126.982300 (Batas: 150m)</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Catatan Opsional -->
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Catatan Kehadiran (Opsional)</label>
+                <input type="text" id="att-notes-input" placeholder="Contoh: Hadir Tepat Waktu / Hadir Terlambat" class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-semibold text-slate-800 focus:outline-none" />
+              </div>
+
+              <!-- Tombol Absen Masuk & Absen Pulang -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <button
+                  type="button"
+                  onclick="window.submitAttendance('MASUK')"
+                  class="py-4 px-5 rounded-3xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition transform active:scale-95"
+                >
+                  <i class="ph-bold ph-sign-in text-xl"></i>
+                  <span>ABSEN MASUK</span>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="window.submitAttendance('PULANG')"
+                  class="py-4 px-5 rounded-3xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2.5 transition transform active:scale-95"
+                >
+                  <i class="ph-bold ph-sign-out text-xl"></i>
+                  <span>ABSEN PULANG</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Interactive Radar & Geolocation Controls -->
+            <div class="lg:col-span-6 clay-card-white p-6 flex flex-col justify-between space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Peta Radar & Sensor Titik Lokasi</h3>
+                  <p class="text-xs text-slate-400 font-medium">Titik Pusat: SMP Negeri 42 Buru</p>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button onclick="window.detectRealGPS()" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-extrabold transition flex items-center gap-1">
+                    <i class="ph-bold ph-crosshair"></i> GPS Perangkat
+                  </button>
+                  <button onclick="window.simulateLocation('inside')" class="px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-extrabold transition">
+                    Simulasi Dalam Radius
+                  </button>
+                  <button onclick="window.simulateLocation('outside')" class="px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-extrabold transition">
+                    Simulasi Luar Radius
+                  </button>
+                </div>
+              </div>
+
+              <!-- Visual Radar Geolocation Canvas -->
+              <div class="relative h-56 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 overflow-hidden flex items-center justify-center border-2 border-indigo-200/40 shadow-inner">
+                <!-- Grid Lines -->
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#818CF8 1px, transparent 1px); background-size: 18px 18px;"></div>
+                <!-- Concentric Radar Circles -->
+                <div class="w-44 h-44 rounded-full border border-emerald-400/40 bg-emerald-500/10 flex items-center justify-center relative">
+                  <div class="w-28 h-28 rounded-full border border-emerald-400/60 bg-emerald-400/10 flex items-center justify-center">
+                    <!-- School Center Pin -->
+                    <div class="w-9 h-9 rounded-2xl bg-white text-indigo-700 shadow-lg flex flex-col items-center justify-center z-10">
+                      <i class="ph-fill ph-Buildings text-lg"></i>
+                    </div>
+                  </div>
+                  <!-- User Position Dot -->
+                  <div id="radar-user-dot" class="absolute top-12 right-12 w-7 h-7 rounded-full bg-emerald-400 text-slate-950 font-extrabold text-[10px] flex items-center justify-center shadow-lg border-2 border-white transition-all duration-500">
+                    <i class="ph-fill ph-navigation-arrow"></i>
+                  </div>
+                </div>
+
+                <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[11px] text-indigo-100 font-semibold bg-slate-900/70 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10">
+                  <span id="radar-school-coords">Pusat: -3.2450, 126.9822</span>
+                  <span id="radar-max-radius" class="text-emerald-300 font-extrabold">Radius Maks: 150m</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <span class="text-[10px] font-bold text-slate-400 block">JAM MASUK</span>
+                  <span id="info-work-start" class="text-xs font-extrabold text-slate-800">07:15 WIT</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <span class="text-[10px] font-bold text-slate-400 block">JAM PULANG</span>
+                  <span id="info-work-end" class="text-xs font-extrabold text-slate-800">14:00 WIT</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <span class="text-[10px] font-bold text-slate-400 block">JARAK SAAT INI</span>
+                  <span id="info-current-distance" class="text-xs font-extrabold text-emerald-600">24 Meter</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Attendance History Table -->
+          <div class="clay-card-white p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <h3 class="font-extrabold text-base text-slate-900">Riwayat Absensi Masuk & Pulang</h3>
+                <p class="text-xs text-slate-400 font-medium">Daftar rekaman waktu presensi beserta jarak lokasi GPS</p>
+              </div>
+              <input type="date" id="filter-attendance-date" onchange="window.renderAttendanceTable()" class="px-4 py-2 rounded-full bg-[#EEF2F9] text-xs font-bold text-slate-700 focus:outline-none" />
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                    <th class="py-3 px-4">Tanggal</th>
+                    <th class="py-3 px-4">Nama Guru / NIP</th>
+                    <th class="py-3 px-4">Jabatan & Status</th>
+                    <th class="py-3 px-4">Jam Masuk</th>
+                    <th class="py-3 px-4">Jam Pulang</th>
+                    <th class="py-3 px-4">Jarak GPS</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="attendance-table-body" class="divide-y divide-slate-100 text-xs">
+                  <!-- Diisi dinamis oleh JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MENU 4: PENGAJUAN IZIN / CUTI (UPLOAD FILE PDF & LINK SURAT)    -->
+        <!-- =============================================================== -->
+        <section id="view-leaves" class="hidden space-y-6 no-print">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Column: Form Pengajuan Izin/Cuti -->
+            <div class="lg:col-span-5 clay-card-white p-6">
+              <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                <div class="w-11 h-11 rounded-2xl bg-amber-400 text-white flex items-center justify-center clay-icon-3d">
+                  <i class="ph-fill ph-file-pdf text-2xl"></i>
+                </div>
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Formulir Pengajuan Izin / Cuti</h3>
+                  <p class="text-xs text-slate-400 font-medium">Mendukung Upload File PDF & Tautan Surat</p>
+                </div>
+              </div>
+
+              <form id="leave-request-form" class="mt-4 space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1.5">Nama Guru / Pengaju <span class="text-rose-500">*</span></label>
+                  <select id="leave-teacher-select" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none">
+                    <!-- Diisi dinamis oleh JS -->
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1.5">Jenis Pengajuan <span class="text-rose-500">*</span></label>
+                  <select id="leave-type" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none">
+                    <option value="Izin">Izin Keperluan Keluarga / Pribadi</option>
+                    <option value="Sakit">Sakit (Surat Keterangan Dokter)</option>
+                    <option value="Cuti">Cuti Tahunan / Melahirkan</option>
+                    <option value="Tugas Dinas">Tugas Luar / Dinas Sekolah</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Tanggal Mulai <span class="text-rose-500">*</span></label>
+                    <input type="date" id="leave-start-date" required class="w-full px-3.5 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Tanggal Selesai <span class="text-rose-500">*</span></label>
+                    <input type="date" id="leave-end-date" required class="w-full px-3.5 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1.5">Alasan / Keterangan Lengkap <span class="text-rose-500">*</span></label>
+                  <textarea id="leave-reason" rows="2" required placeholder="Tuliskan alasan pengajuan izin atau cuti..." class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-semibold text-slate-800 focus:outline-none"></textarea>
+                </div>
+
+                <!-- Upload File PDF -->
+                <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/70">
+                  <label class="block text-xs font-extrabold text-rose-800 mb-1 flex items-center gap-1.5">
+                    <i class="ph-fill ph-file-pdf text-base"></i> 1. Upload File PDF Surat Izin / Dokter
+                  </label>
+                  <input
+                    type="file"
+                    id="leave-pdf-file"
+                    accept="application/pdf,.pdf"
+                    class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-full file:border-0 file:text-xs file:font-extrabold file:bg-rose-500 file:text-white hover:file:bg-rose-600 cursor-pointer"
+                  />
+                  <p class="text-[10px] text-slate-500 mt-1">Format: .PDF (Maks 2MB agar tersimpan optimal di database)</p>
+                </div>
+
+                <!-- Input Link Surat Izin/Cuti -->
+                <div class="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200/70">
+                  <label class="block text-xs font-extrabold text-sky-800 mb-1 flex items-center gap-1.5">
+                    <i class="ph-fill ph-link text-base"></i> 2. Link Surat Izin / Cuti (Google Drive / Cloud)
+                  </label>
+                  <input
+                    type="url"
+                    id="leave-letter-link"
+                    placeholder="https://drive.google.com/file/d/..."
+                    class="w-full px-3.5 py-2 rounded-xl bg-white border border-sky-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                  />
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-full clay-btn-purple text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg">
+                  <i class="ph-bold ph-paper-plane-tilt text-base"></i> Kirim Pengajuan Izin / Cuti
+                </button>
+              </form>
+            </div>
+
+            <!-- Right Column: Daftar Pengajuan Izin & Verifikasi Admin -->
+            <div class="lg:col-span-7 clay-card-white p-6 flex flex-col">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Daftar Permohonan Izin & Cuti</h3>
+                  <p class="text-xs text-slate-400 font-medium">Klik tombol PDF atau Link untuk memeriksa dokumen surat</p>
+                </div>
+                <select id="filter-leave-status" onchange="window.renderLeavesList()" class="px-4 py-2 rounded-full bg-[#EEF2F9] text-xs font-bold text-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Status</option>
+                  <option value="Menunggu">Menunggu Persetujuan</option>
+                  <option value="Disetujui">Disetujui</option>
+                  <option value="Ditolak">Ditolak</option>
+                </select>
+              </div>
+
+              <div id="leaves-list-container" class="mt-4 space-y-3.5 flex-1 overflow-y-auto max-h-[600px] pr-1">
+                <!-- Diisi dinamis oleh JS -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MENU 5: LAPORAN / CETAK PDF RESMI (PAS KERTAS A4 TANPA POTONG)  -->
+        <!-- =============================================================== -->
+        <section id="view-reports" class="hidden space-y-6">
+          <!-- Filter & Print Controls (Hidden on Print) -->
+          <div class="clay-card-white p-6 no-print">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Laporan Resmi & Cetak PDF (A4)</h2>
+                <p class="text-xs text-slate-500 font-medium">Format tabel resmi pas ukuran kertas A4 tanpa terpotong</p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5">
+                <select id="report-type-select" onchange="window.renderFormalReport()" class="px-4 py-2.5 rounded-full bg-[#EEF2F9] text-xs font-bold text-slate-800 focus:outline-none">
+                  <option value="ATTENDANCE_DETAIL">Laporan Kehadiran Harian</option>
+                  <option value="TEACHER_SUMMARY">Rekap Akumulasi Kehadiran Guru</option>
+                  <option value="LEAVE_REPORT">Laporan Pengajuan Izin & Cuti</option>
+                </select>
+
+                <select id="report-teacher-filter" onchange="window.renderFormalReport()" class="px-4 py-2.5 rounded-full bg-[#EEF2F9] text-xs font-bold text-slate-800 focus:outline-none">
+                  <option value="ALL">Semua Guru & Staf</option>
+                </select>
+
+                <div class="flex items-center gap-1.5 bg-[#EEF2F9] px-3 py-1.5 rounded-full">
+                  <span class="text-[11px] font-bold text-slate-500">Periode:</span>
+                  <input type="date" id="report-start-date" onchange="window.renderFormalReport()" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none" />
+                  <span class="text-[11px] font-bold text-slate-400">s/d</span>
+                  <input type="date" id="report-end-date" onchange="window.renderFormalReport()" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none" />
+                </div>
+
+                <button type="button" id="btn-print-pdf" onclick="window.printFormalPDF()" class="px-6 py-2.5 rounded-full clay-btn-purple text-white text-xs font-extrabold flex items-center gap-2 shadow-lg cursor-pointer">
+                  <i id="btn-print-pdf-icon" class="ph-bold ph-download-simple text-base"></i>
+                  <span id="btn-print-pdf-text">Cetak / Simpan PDF (A4)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORMAL A4 PRINTABLE DOCUMENT SHEET (PAS UKURAN A4 & TIDAK TERPOTONG) -->
+          <div id="printable-report-area" class="bg-white rounded-2xl shadow-xl border border-slate-200 px-5 py-7 sm:px-8 sm:py-8 w-full max-w-[210mm] mx-auto text-[#0F172A] font-sans box-border">
+            <!-- KOP SURAT RESMI DENGAN LOGO DAERAH (KIRI) & LOGO INSTANSI (KANAN) -->
+            <div class="flex items-center justify-between gap-3">
+              <!-- Logo Daerah (Kiri) -->
+              <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0">
+                <img
+                  id="print-logo-daerah"
+                  crossorigin="anonymous"
+                  src="https://placehold.co/150x150/1E3A8A/ffffff?text=LOGO+BURU"
+                  onerror="this.src='https://placehold.co/150x150/1E3A8A/ffffff?text=KAB+BURU'"
+                  alt="Logo Daerah"
+                  class="w-16 h-16 sm:w-18 sm:h-18 object-contain"
+                />
+              </div>
+
+              <!-- Teks Kop Instansi Tengah (Sans-Serif Tegas Sesuai Gambar Contoh) -->
+              <div class="text-center flex-1 leading-snug">
+                <p id="print-kop-line1" class="text-xs sm:text-[15.5px] font-extrabold uppercase tracking-wide text-[#0F172A]">PEMERINTAH KABUPATEN BURU</p>
+                <p id="print-kop-line2" class="text-xs sm:text-[15.5px] font-extrabold uppercase tracking-wide text-[#0F172A]">DINAS PENDIDIKAN DAN KEBUDAYAAN</p>
+                <h1 id="print-kop-line3" class="text-base sm:text-[20px] font-extrabold uppercase tracking-wide text-[#0F172A] mt-0.5">SMP NEGERI 42 BURU</h1>
+                <p id="print-kop-address" class="text-[10.5px] sm:text-[11.5px] font-medium text-[#1E293B] mt-0.5">
+                  Jl. SMP siahoni. Desa Siahoni, Kec. Namlea, Kab. Buru, Prov. Maluku
+                </p>
+              </div>
+
+              <!-- Logo Instansi / Sekolah (Kanan) -->
+              <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0">
+                <img
+                  id="print-logo-instansi"
+                  crossorigin="anonymous"
+                  src="https://placehold.co/150x150/7D73E0/ffffff?text=SMPN+42"
+                  onerror="this.src='https://placehold.co/150x150/7D73E0/ffffff?text=SMPN+42'"
+                  alt="Logo Instansi"
+                  class="w-16 h-16 sm:w-18 sm:h-18 object-contain"
+                />
+              </div>
+            </div>
+
+            <!-- Garis Ganda Kop Surat -->
+            <div class="kop-double-line"></div>
+
+            <!-- Judul Dokumen Laporan & Periode Tanggal -->
+            <div class="text-center mb-5">
+              <h2 id="print-doc-title" class="text-xs sm:text-[14.5px] font-extrabold uppercase tracking-wide text-[#0F172A] inline-block border-b-2 border-[#0F172A] pb-0.5">
+                LAPORAN KEHADIRAN HARIAN GURU DAN KARYAWAN
+              </h2>
+              <p id="print-doc-period" class="text-[11px] sm:text-[12px] font-semibold text-[#1E293B] mt-1">
+                Periode Tanggal: 2026-11-01 s/d 2026-11-02
+              </p>
+            </div>
+
+            <!-- Tabel Data Formal Bersih & Rapi (Lebar 100% Proporsional Pas A4) -->
+            <div id="printable-table-wrapper" class="w-full">
+              <table class="formal-pdf-table">
+                <thead id="print-table-head">
+                  <!-- Diisi dinamis oleh JS -->
+                </thead>
+                <tbody id="print-table-body">
+                  <!-- Diisi dinamis oleh JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Blok Tanda Tangan Pengesahan (Admin & Kepala Sekolah) -->
+            <div class="mt-8 grid grid-cols-2 gap-6 text-[11.5px] leading-relaxed text-[#0F172A]" style="page-break-inside: avoid; break-inside: avoid;">
+              <div class="text-center">
+                <p class="font-medium">Mengetahui,</p>
+                <p class="font-bold">Kepala SMP Negeri 42 Buru</p>
+                <div class="h-16"></div>
+                <p id="print-principal-name" class="font-bold underline">Irfan Sillia, S.E., Gr.</p>
+                <p id="print-principal-nip" class="font-medium">NIP. 19760815</p>
+              </div>
+
+              <div class="text-center">
+                <p id="print-sign-date" class="font-medium">Buru, 2 November 2026</p>
+                <p class="font-bold">Administrator / Operator Absensi</p>
+                <div class="h-16"></div>
+                <p id="print-admin-name" class="font-bold underline">M. R. Marasabessy, S.Pd.,Gr</p>
+                <p id="print-admin-nip" class="font-medium">NIP. 19900514 201903 1 005</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- MENU 6: PENGATURAN / SETTING APLIKASI & INSTANSI                -->
+        <!-- =============================================================== -->
+        <section id="view-settings" class="hidden space-y-6 no-print">
+          <form id="app-settings-form" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+              <!-- Kolom Kiri: Data Aplikasi, Admin, Kepala Sekolah & Kop Instansi -->
+              <div class="lg:col-span-7 clay-card-white p-6 space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                  <div class="w-11 h-11 rounded-2xl bg-indigo-500 text-white flex items-center justify-center clay-icon-3d">
+                    <i class="ph-fill ph-buildings text-2xl"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-extrabold text-base text-slate-900">Identitas Aplikasi, Pejabat & Kop Instansi</h3>
+                    <p class="text-xs text-slate-400 font-medium">Perubahan otomatis diterapkan pada Dashboard dan Cetak PDF</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Aplikasi / Instansi</label>
+                    <input type="text" id="set-app-name" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Kop Surat Baris 1 (Pemda)</label>
+                    <input type="text" id="set-kop-1" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Kop Surat Baris 2 (Dinas)</label>
+                    <input type="text" id="set-kop-2" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Kop Surat Baris 3 (Nama Sekolah)</label>
+                    <input type="text" id="set-kop-3" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Alamat Lengkap Kop Surat</label>
+                  <input type="text" id="set-school-address" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Kepala Sekolah</label>
+                    <input type="text" id="set-principal-name" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">NIP Kepala Sekolah</label>
+                    <input type="text" id="set-principal-nip" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Admin / Operator</label>
+                    <input type="text" id="set-admin-name" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">NIP Admin / Operator</label>
+                    <input type="text" id="set-admin-nip" required class="w-full px-4 py-2.5 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Kolom Kanan: Logo Daerah, Logo Instansi & Radius Lokasi GPS -->
+              <div class="lg:col-span-5 space-y-6">
+                <!-- Pengaturan Logo -->
+                <div class="clay-card-white p-6 space-y-4">
+                  <h3 class="font-extrabold text-base text-slate-900">Logo Daerah & Logo Instansi</h3>
+
+                  <!-- Logo Daerah -->
+                  <div class="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <img id="preview-set-logo-daerah" src="https://placehold.co/120x120/1E3A8A/ffffff?text=BURU" alt="Logo Daerah" class="w-14 h-14 rounded-xl object-contain bg-white p-1 border" />
+                    <div class="flex-1 space-y-1.5">
+                      <label class="block text-xs font-extrabold text-slate-700">1. Logo Daerah (Kiri Kop)</label>
+                      <input type="url" id="set-logo-daerah-url" placeholder="URL Gambar Logo Daerah" class="w-full px-3 py-1.5 rounded-xl bg-white border text-xs font-semibold" />
+                      <input type="file" accept="image/*" onchange="window.handleLogoUpload(event, 'daerah')" class="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-indigo-100 file:text-indigo-700 file:font-bold" />
+                    </div>
+                  </div>
+
+                  <!-- Logo Instansi -->
+                  <div class="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <img id="preview-set-logo-instansi" src="https://placehold.co/120x120/7D73E0/ffffff?text=SMP42" alt="Logo Instansi" class="w-14 h-14 rounded-xl object-contain bg-white p-1 border" />
+                    <div class="flex-1 space-y-1.5">
+                      <label class="block text-xs font-extrabold text-slate-700">2. Logo Instansi / Sekolah (Kanan Kop)</label>
+                      <input type="url" id="set-logo-instansi-url" placeholder="URL Gambar Logo Sekolah" class="w-full px-3 py-1.5 rounded-xl bg-white border text-xs font-semibold" />
+                      <input type="file" accept="image/*" onchange="window.handleLogoUpload(event, 'instansi')" class="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-indigo-100 file:text-indigo-700 file:font-bold" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pengaturan Titik Koordinat & Radius Absensi -->
+                <div class="clay-card-white p-6 space-y-4">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-extrabold text-base text-slate-900">Titik Lokasi & Radius Absensi</h3>
+                      <span id="radius-lock-badge" class="hidden px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold items-center gap-1">
+                        <i class="ph-fill ph-lock-key"></i> Terkunci
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <button type="button" id="btn-unlock-radius" onclick="window.toggleRadiusLock(false)" class="hidden px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-[11px] font-extrabold transition items-center gap-1">
+                        <i class="ph-bold ph-lock-key-open"></i> Buka Kunci
+                      </button>
+                      <button type="button" id="btn-get-current-gps" onclick="window.setSchoolCoordsFromCurrentGPS()" class="px-3 py-1.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-extrabold transition flex items-center gap-1">
+                        <i class="ph-bold ph-gps-fix"></i> Ambil Titik Saat Ini
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 mb-1">Latitude Sekolah</label>
+                      <input type="number" step="any" id="set-school-lat" required class="w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 mb-1">Longitude Sekolah</label>
+                      <input type="number" step="any" id="set-school-lng" required class="w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800" />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 mb-1">Radius Maks (m)</label>
+                      <input type="number" id="set-max-radius" required class="w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 mb-1">Jam Masuk</label>
+                      <input type="time" id="set-work-start" required class="w-full px-3 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 mb-1">Jam Pulang</label>
+                      <input type="time" id="set-work-end" required class="w-full px-3 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800" />
+                    </div>
+                  </div>
+
+                  <button type="submit" class="w-full py-3.5 rounded-full clay-btn-purple text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg">
+                    <i class="ph-bold ph-check-circle text-lg"></i> Simpan Seluruh Pengaturan
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </form>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT MODULE: SUPABASE + HYBRID AUTH + AUTO SETUP + PWA          -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // =========================================================================
+    // KONFIGURASI APLIKASI (SAKLAR DEPLOYMENT & SUPABASE)
+    // =========================================================================
+    const IS_PREVIEW = false; // Set false JIKA SUDAH TERHUBUNG KE SUPABASE
+    // PASTE SUPABASE URL & ANON KEY ANDA DI SINI
+    const SUPABASE_URL = "https://mforhznxglrzgjghfmtx.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_vvMhuIJ1KnzVl8C1vpZshw_dNqA-KOO";
+
+    let supabase = null;
+    if (!IS_PREVIEW && SUPABASE_URL.startsWith("http")) {
+      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // =========================================================================
+    // REGISTRASI SERVICE WORKER PWA DINAMIS VIA BLOB (1 FILE TUNGGAL)
+    // =========================================================================
+    const registerSingleFilePWA = () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const swScript = `
+            self.addEventListener('install', (event) => self.skipWaiting());
+            self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+            self.addEventListener('fetch', (event) => {});
+          `;
+          const blob = new Blob([swScript], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        } catch (e) {
+          // Abaikan jika diblokir oleh sandbox iframe
+        }
+      }
+    };
+
+    // =========================================================================
+    // STATE GLOBAL APLIKASI
+    // =========================================================================
+    const todayISO = new Date().toISOString().split('T')[0];
+    const startOfMonthISO = todayISO.slice(0, 8) + '01';
+
+    // Default Logo SVG Data URI Sesuai Gambar Contoh (Logo Kabupaten Buru & Logo Perisai SMP Negeri 42 Buru)
+    const defaultLogoDaerahSvg = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+        <!-- Pita Biru Atas -->
+        <path d="M26 32 Q90 12 154 32 L146 46 Q90 28 34 46 Z" fill="#0284C7"/>
+        <text x="90" y="34" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">KABUPATEN BURU</text>
+        <!-- Perisai Kuning Emas -->
+        <path d="M32 45 L148 45 L142 115 C138 142 90 158 90 158 C90 158 42 142 38 115 Z" fill="#FACC15" stroke="#EAB308" stroke-width="3"/>
+        <!-- Lingkaran Dalam Gunung & Laut -->
+        <circle cx="90" cy="94" r="32" fill="#FFFFFF" stroke="#15803D" stroke-width="3"/>
+        <path d="M62 96 L78 74 L95 92 L106 80 L118 96 Z" fill="#16A34A"/>
+        <path d="M62 96 Q90 102 118 96 L116 116 Q90 126 64 116 Z" fill="#38BDF8"/>
+        <!-- Padi & Kapas Samping -->
+        <path d="M52 72 Q46 105 74 128" fill="none" stroke="#15803D" stroke-width="4" stroke-linecap="round"/>
+        <path d="M128 72 Q134 105 106 128" fill="none" stroke="#15803D" stroke-width="4" stroke-linecap="round"/>
+        <!-- Pita Merah Bawah -->
+        <path d="M36 144 Q90 162 144 144 L148 156 Q90 174 32 156 Z" fill="#EF4444"/>
+        <text x="90" y="157" font-family="Arial, sans-serif" font-size="8.5" font-weight="bold" fill="#FFFFFF" text-anchor="middle">RETE MENA BARA SEHE</text>
+      </svg>
+    `);
+
+    const defaultLogoInstansiSvg = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+        <!-- Perisai Biru Tua Khas SMPN 42 Buru -->
+        <path d="M90 14 L152 32 C148 75 156 125 90 166 C24 125 32 75 28 32 Z" fill="#1E1B8B" stroke="#0F172A" stroke-width="5"/>
+        <path d="M90 22 L144 38 C140 75 148 120 90 156 C32 120 40 75 36 38 Z" fill="none" stroke="#FACC15" stroke-width="2.5"/>
+        <text x="90" y="48" font-family="Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#FACC15" text-anchor="middle">SMP NEGERI 42 BURU</text>
+        <!-- Bintang & Buku Terbuka -->
+        <polygon points="90,56 93,65 102,65 95,70 98,79 90,74 82,79 85,70 78,65 87,65" fill="#FACC15"/>
+        <path d="M56 88 L88 82 L88 120 L56 126 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        <path d="M124 88 L92 82 L92 120 L124 126 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        <!-- Pita Putih Bawah -->
+        <rect x="58" y="132" width="64" height="14" rx="4" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+        <text x="90" y="142" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#0F172A" text-anchor="middle">KAB. BURU</text>
+      </svg>
+    `);
+
+    let appState = {
+      loginRoleMode: 'guru', // 'guru' atau 'admin'
+      currentUser: null,     // Menyimpan sesi aktif
+      activeMenu: 'dashboard',
+      searchQuery: '',
+      radiusLocked: false,   // Status kunci otomatis setelah Admin menyimpan radius
+      currentGPS: {
+        lat: -3.24515,
+        lng: 126.98233,
+        distanceMeters: 24,
+        withinRadius: true
+      },
+      settings: {
+        id: '00000000-0000-0000-0000-000000000001',
+        app_name: 'SMP Negeri 42 Buru',
+        admin_name: 'M. R. Marasabessy, S.Pd.,Gr',
+        admin_nip: '19900514 201903 1 005',
+        principal_name: 'Irfan Sillia, S.E., Gr.',
+        principal_nip: '19760815',
+        kop_line1: 'PEMERINTAH KABUPATEN BURU',
+        kop_line2: 'DINAS PENDIDIKAN DAN KEBUDAYAAN',
+        kop_line3: 'SMP NEGERI 42 BURU',
+        school_address: 'Jl. SMP siahoni. Desa Siahoni, Kec. Namlea, Kab. Buru, Prov. Maluku',
+        logo_daerah_url: defaultLogoDaerahSvg,
+        logo_instansi_url: defaultLogoInstansiSvg,
+        school_lat: -3.24500,
+        school_lng: 126.98220,
+        max_radius_meters: 150,
+        work_start_time: '07:15',
+        work_end_time: '14:00'
+      },
+      teachers: [],
+      attendances: [],
+      leaveRequests: []
+    };
+
+    // =========================================================================
+    // DATA AWAL BERSIH (SIAP DEPLOY - TANPA DATA DUMMY)
+    // =========================================================================
+    const getInitialSeedData = () => {
+      return {
+        teachers: [],
+        attendances: [],
+        leaveRequests: []
+      };
+    };
+
+    // =========================================================================
+    // FUNGSI WAJIB: autoSetupDatabase()
+    // =========================================================================
+    async function autoSetupDatabase() {
+      const seed = getInitialSeedData();
+
+      if (IS_PREVIEW || !supabase) {
+        appState.teachers = seed.teachers;
+        appState.attendances = seed.attendances;
+        appState.leaveRequests = seed.leaveRequests;
+        return;
+      }
+
+      // Mode Produksi Supabase (IS_PREVIEW === false)
+      try {
+        // 1. Cek apakah tabel app_settings sudah memiliki baris konfigurasi
+        const { data: existingSettings, error: setErr } = await supabase
+          .from('app_settings')
+          .select('*')
+          .limit(1);
+
+        if (!setErr && (!existingSettings || existingSettings.length === 0)) {
+          await supabase.from('app_settings').insert([appState.settings]);
+        } else if (existingSettings && existingSettings.length > 0) {
+          appState.settings = { ...appState.settings, ...existingSettings[0] };
+        }
+
+        // 2. Muat daftar guru dari Supabase
+        const { data: existingTeachers } = await supabase
+          .from('teachers')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (existingTeachers) {
+          appState.teachers = existingTeachers;
+        }
+
+        // 3. Muat data absensi dan izin dari Supabase
+        const { data: attData } = await supabase
+          .from('attendances')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (attData) appState.attendances = attData;
+
+        const { data: leaveData } = await supabase
+          .from('leave_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (leaveData) appState.leaveRequests = leaveData;
+
+      } catch (err) {
+        showToast('Gagal memuat dari Supabase, periksa konfigurasi koneksi.', 'error');
+      }
+    }
+
+    // =========================================================================
+    // UTILITAS: TOAST NOTIFICATION, FORMAT JABATAN & HAVERSINE FORMULA
+    // =========================================================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const colors = {
+        success: 'bg-emerald-600 text-white border-emerald-400',
+        error: 'bg-rose-600 text-white border-rose-400',
+        info: 'bg-indigo-600 text-white border-indigo-400'
+      };
+      const icons = {
+        success: 'ph-check-circle',
+        error: 'ph-warning-circle',
+        info: 'ph-info'
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-xl border ${colors[type] || colors.info} text-xs font-bold transition-all duration-300 transform translate-y-0`;
+      toast.innerHTML = `
+        <i class="ph-fill ${icons[type] || icons.info} text-xl flex-shrink-0"></i>
+        <span class="flex-1 leading-snug">${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3600);
+    }
+
+    // Rumus Haversine menghitung jarak lurus (meter) antara 2 koordinat bumi
+    function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    }
+
+    // Helper menggabungkan Jabatan & Status seperti pada gambar contoh: "Guru-MTK (PPPK)"
+    function getTeacherJobAndStatus(teacherId, fallbackName = '') {
+      const t =
+        appState.teachers.find((item) => item.id === teacherId) ||
+        appState.teachers.find((item) => item.full_name === fallbackName);
+      if (!t) return 'Guru / Staf (PNS)';
+      const pos = t.position || 'Guru';
+      const stat = t.employment_status || 'PNS';
+      if (pos.includes(`(${stat})`)) return pos;
+      return `${pos} (${stat})`;
+    }
+
+    // =========================================================================
+    // HELPER FILTER DATA BERDASARKAN ROLE LOGIN (ISOLASI DATA AKUN GURU)
+    // =========================================================================
+    function isGuruSession() {
+      return appState.currentUser && appState.currentUser.role === 'guru';
+    }
+
+    function isAttendanceWithinConfiguredRadius(att) {
+      const maxRadius = Number(appState.settings.max_radius_meters) || 150;
+      let dist = Number(att.distance_meters);
+      if (att.check_in_lat !== undefined && att.check_in_lng !== undefined) {
+        dist = calculateDistanceMeters(
+          Number(att.check_in_lat),
+          Number(att.check_in_lng),
+          Number(appState.settings.school_lat),
+          Number(appState.settings.school_lng)
+        );
+        att.distance_meters = dist;
+      }
+      att.within_radius = dist <= maxRadius;
+      return att.within_radius;
+    }
+
+    function getVisibleTeachers() {
+      if (isGuruSession()) {
+        return appState.teachers.filter((t) => t.id === appState.currentUser.teacherId);
+      }
+      return appState.teachers;
+    }
+
+    function getVisibleAttendances() {
+      // Hanya membaca data absensi yang berada di dalam radius yang ditentukan Admin
+      const validRadiusAttendances = appState.attendances.filter((a) =>
+        isAttendanceWithinConfiguredRadius(a)
+      );
+      if (isGuruSession()) {
+        return validRadiusAttendances.filter((a) => a.teacher_id === appState.currentUser.teacherId);
+      }
+      return validRadiusAttendances;
+    }
+
+    function getVisibleLeaveRequests() {
+      if (isGuruSession()) {
+        return appState.leaveRequests.filter((l) => l.teacher_id === appState.currentUser.teacherId);
+      }
+      return appState.leaveRequests;
+    }
+
+    // =========================================================================
+    // SISTEM HYBRID LOGIN (ADMIN VIA SUPABASE AUTH & GURU VIA TABEL DATABASE)
+    // =========================================================================
+    window.switchLoginRole = (role) => {
+      appState.loginRoleMode = role;
+      const btnGuru = document.getElementById('tab-role-guru');
+      const btnAdmin = document.getElementById('tab-role-admin');
+      const inputId = document.getElementById('login-identifier');
+      const iconId = document.getElementById('login-identifier-icon');
+
+      if (role === 'guru') {
+        btnGuru.className = 'py-2.5 px-4 rounded-full text-xs font-extrabold transition-all bg-white text-slate-800 shadow-sm flex items-center justify-center gap-1.5';
+        btnAdmin.className = 'py-2.5 px-4 rounded-full text-xs font-extrabold transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5';
+        inputId.placeholder = 'Masukkan Username atau NIP Guru';
+        iconId.className = 'ph-bold ph-identification-card text-lg';
+      } else {
+        btnAdmin.className = 'py-2.5 px-4 rounded-full text-xs font-extrabold transition-all bg-white text-slate-800 shadow-sm flex items-center justify-center gap-1.5';
+        btnGuru.className = 'py-2.5 px-4 rounded-full text-xs font-extrabold transition-all text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5';
+        inputId.placeholder = 'Masukkan Email Admin Supabase Auth';
+        iconId.className = 'ph-bold ph-at text-lg';
+      }
+    };
+
+    window.togglePasswordVisibility = () => {
+      const passInput = document.getElementById('login-password');
+      const eyeIcon = document.getElementById('login-eye-icon');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.className = 'ph-bold ph-eye text-lg text-indigo-600';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.className = 'ph-bold ph-eye-slash text-lg';
+      }
+    };
+
+    document.getElementById('hybrid-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+
+      if (appState.loginRoleMode === 'admin') {
+        // JALUR 1: ADMIN MENGGUNAKAN SUPABASE AUTHENTICATION (Email & Password)
+        if (!IS_PREVIEW && supabase) {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: identifier,
+            password: password
+          });
+          if (error) {
+            showToast('Login Admin gagal: ' + error.message, 'error');
+            return;
+          }
+          appState.currentUser = {
+            role: 'admin',
+            name: appState.settings.admin_name,
+            email: data.user.email,
+            teacherId: null
+          };
+        } else {
+          // Mode Preview Admin
+          if ((identifier.includes('@') || identifier.toLowerCase() === 'admin') && password.length >= 4) {
+            appState.currentUser = {
+              role: 'admin',
+              name: appState.settings.admin_name,
+              email: identifier,
+              teacherId: null
+            };
+          } else {
+            showToast('Masukkan Email Admin yang valid dan password minimal 4 karakter.', 'error');
+            return;
+          }
+        }
+      } else {
+        // JALUR 2: GURU / USER MENGGUNAKAN VALIDASI DATA TABEL DATABASE SUPABASE
+        let matchedTeacher = null;
+        if (!IS_PREVIEW && supabase) {
+          const { data, error } = await supabase
+            .from('teachers')
+            .select('*')
+            .or(`username.eq.${identifier},nip.eq.${identifier}`)
+            .eq('password', password)
+            .maybeSingle();
+
+          if (error || !data) {
+            showToast('Username/NIP atau Password Guru tidak ditemukan di database!', 'error');
+            return;
+          }
+          matchedTeacher = data;
+        } else {
+          matchedTeacher = appState.teachers.find(
+            (t) =>
+              (t.username.toLowerCase() === identifier.toLowerCase() || t.nip === identifier) &&
+              t.password === password
+          );
+          if (!matchedTeacher) {
+            showToast('Username/NIP atau Password Guru belum terdaftar. Silakan hubungi Admin.', 'error');
+            return;
+          }
+        }
+
+        appState.currentUser = {
+          role: 'guru',
+          name: matchedTeacher.full_name,
+          nip: matchedTeacher.nip,
+          teacherId: matchedTeacher.id
+        };
+      }
+
+      // Masuk ke Workspace Utama
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('main-app-view').classList.remove('hidden');
+      applyUserSessionUI();
+      window.navigateMenu('dashboard');
+      refreshAllViews();
+      showToast(`Selamat datang, ${appState.currentUser.name}!`, 'success');
+    });
+
+    window.handleLogout = async () => {
+      if (!IS_PREVIEW && supabase && appState.currentUser?.role === 'admin') {
+        await supabase.auth.signOut();
+      }
+      appState.currentUser = null;
+      document.getElementById('main-app-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+      showToast('Anda telah keluar dari sesi aplikasi.', 'info');
+    };
+
+    function applyUserSessionUI() {
+      const user = appState.currentUser;
+      if (!user) return;
+
+      const isGuru = user.role === 'guru';
+      const shortName = user.name.split(',')[0];
+      document.getElementById('sidebar-user-greeting').textContent = `Hi, ${shortName}! 👋`;
+      document.getElementById('sidebar-role-badge').textContent = user.role === 'admin' ? 'Administrator' : 'Guru / Staf';
+      document.getElementById('header-user-name').textContent = shortName;
+      document.getElementById('header-user-role').textContent = user.role === 'admin' ? 'Admin Sekolah' : `NIP. ${user.nip || '-'}`;
+
+      // Sembunyikan menu "Data Guru" & "Pengaturan" pada Sidebar Desktop & Bottom Nav Mobile jika login sebagai Guru
+      document.querySelectorAll('[data-menu="teachers"], [data-menu="settings"]').forEach((btn) => {
+        if (isGuru) {
+          btn.classList.add('hidden');
+          btn.style.display = 'none';
+        } else {
+          btn.classList.remove('hidden');
+          btn.style.display = '';
+        }
+      });
+
+      // Sembunyikan tombol pintasan "Data Guru" di kartu Dashboard jika login sebagai Guru
+      const btnDashTeachers = document.getElementById('btn-dash-teachers');
+      if (btnDashTeachers) {
+        if (isGuru) {
+          btnDashTeachers.classList.add('hidden');
+        } else {
+          btnDashTeachers.classList.remove('hidden');
+        }
+      }
+    }
+
+    // =========================================================================
+    // NAVIGASI ANTAR 6 MENU UTAMA
+    // =========================================================================
+    const menuMeta = {
+      dashboard: {
+        title: 'Dashboard Interaktif',
+        subtitle: 'Ringkasan kehadiran real-time SMP Negeri 42 Buru'
+      },
+      teachers: {
+        title: 'Input Data Guru & Karyawan',
+        subtitle: 'Kelola biodata pendidik, NIP, dan akun login absensi'
+      },
+      attendance: {
+        title: 'Absensi (Masuk & Pulang) & Radius GPS',
+        subtitle: 'Verifikasi jarak koordinat lokasi sekolah sebelum presensi'
+      },
+      leaves: {
+        title: 'Pengajuan Izin & Cuti (PDF & Link)',
+        subtitle: 'Unggah lampiran surat PDF atau tautan dokumen izin/sakit/cuti'
+      },
+      reports: {
+        title: 'Laporan Resmi & Cetak PDF (A4)',
+        subtitle: 'Tampilan cetak bersih menggunakan tabel, Kop Instansi, Logo Daerah & Logo Sekolah'
+      },
+      settings: {
+        title: 'Pengaturan Aplikasi & Instansi',
+        subtitle: 'Atur Nama Aplikasi, Admin, Kepala Sekolah, Kop Surat, Logo & Radius Lokasi'
+      }
+    };
+
+    window.navigateMenu = (menuKey) => {
+      if (menuKey === 'teachers' && isGuruSession()) {
+        showToast('Menu Data Guru hanya dapat diakses oleh Administrator.', 'info');
+        menuKey = 'dashboard';
+      }
+
+      if (menuKey === 'settings' && (isGuruSession() || appState.currentUser?.role !== 'admin')) {
+        showToast('Menu Pengaturan Aplikasi hanya dapat diakses oleh Administrator.', 'info');
+        menuKey = 'dashboard';
+      }
+
+      appState.activeMenu = menuKey;
+      const sections = ['dashboard', 'teachers', 'attendance', 'leaves', 'reports', 'settings'];
+      sections.forEach((sec) => {
+        const el = document.getElementById(`view-${sec}`);
+        if (el) {
+          if (sec === menuKey) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+      });
+
+      // Update Desktop Sidebar Active Pill
+      document.querySelectorAll('.nav-item-btn').forEach((btn) => {
+        const isCurrent = btn.getAttribute('data-menu') === menuKey;
+        if (isCurrent) {
+          btn.className = 'nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-extrabold transition-all bg-[#FAF7F5] text-slate-900 shadow-md';
+        } else {
+          btn.className = 'nav-item-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-white/90 hover:bg-white/15';
+        }
+      });
+
+      // Update Mobile Bottom Nav Active State
+      document.querySelectorAll('.mob-nav-btn').forEach((btn) => {
+        const isCurrent = btn.getAttribute('data-menu') === menuKey;
+        if (isCurrent) {
+          btn.className = 'mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl bg-white text-indigo-900 font-extrabold text-[10px] shadow';
+        } else {
+          btn.className = 'mob-nav-btn flex flex-col items-center py-1.5 px-2.5 rounded-2xl text-white/90 font-bold text-[10px]';
+        }
+      });
+
+      // Update Top Header Title
+      if (menuMeta[menuKey]) {
+        document.getElementById('top-page-title').textContent = menuMeta[menuKey].title;
+        document.getElementById('top-page-subtitle').textContent = menuMeta[menuKey].subtitle;
+      }
+
+      if (menuKey === 'reports') {
+        window.renderFormalReport();
+      }
+    };
+
+    window.handleGlobalSearch = (val) => {
+      appState.searchQuery = val.trim().toLowerCase();
+      renderTeachersTable();
+      renderAttendanceTable();
+      renderLeavesList();
+    };
+
+    // =========================================================================
+    // RENDER MENU 1: DASHBOARD INTERAKTIF
+    // =========================================================================
+    function renderDashboard() {
+      const visibleTeachers = getVisibleTeachers();
+      const visibleAttendances = getVisibleAttendances();
+      const visibleLeaves = getVisibleLeaveRequests();
+      const isGuru = isGuruSession();
+
+      const totalTeachers = visibleTeachers.length;
+      const todayAttendances = visibleAttendances.filter((a) => a.attendance_date === todayISO);
+      const presentCount = todayAttendances.length;
+      const pendingLeaves = visibleLeaves.filter((l) => l.approval_status === 'Menunggu').length;
+      const totalLeaves = visibleLeaves.length;
+
+      let attendanceRate = 0;
+      if (isGuru) {
+        attendanceRate = visibleAttendances.length > 0 ? 100 : 0;
+      } else {
+        attendanceRate = totalTeachers > 0 ? Math.min(100, Math.round((presentCount / totalTeachers) * 100)) : 0;
+      }
+
+      const labelTeachers = document.getElementById('kpi-label-teachers');
+      const subTeachers = document.getElementById('kpi-sub-teachers');
+      if (labelTeachers && subTeachers) {
+        if (isGuru) {
+          labelTeachers.textContent = 'Total Kehadiran Saya';
+          document.getElementById('kpi-total-teachers').textContent = visibleAttendances.length;
+          subTeachers.innerHTML = `<i class="ph-bold ph-user-check"></i> <span>Akun Pribadi Aktif</span>`;
+        } else {
+          labelTeachers.textContent = 'Total Guru & Staf';
+          document.getElementById('kpi-total-teachers').textContent = totalTeachers;
+          subTeachers.innerHTML = `<i class="ph-bold ph-trend-up"></i> <span>${totalTeachers > 0 ? '100% Terdaftar Aktif' : 'Belum Ada Data Guru'}</span>`;
+        }
+      }
+
+      document.getElementById('kpi-present-today').textContent = presentCount;
+      document.getElementById('kpi-leave-count').textContent = totalLeaves;
+      document.getElementById('kpi-attendance-rate').textContent = `${attendanceRate}%`;
+
+      // Update Sidebar & Header Badges
+      document.getElementById('nav-badge-teachers').textContent = totalTeachers;
+      document.getElementById('nav-badge-leaves').textContent = pendingLeaves;
+      document.getElementById('header-notif-badge').textContent = pendingLeaves;
+
+      // Render Weekly Bar Chart
+      const baseMax = Math.max(1, totalTeachers);
+      const daysData = [
+        { day: 'Sen', count: presentCount, color: 'from-[#A594F9] to-[#8C7AE6]' },
+        { day: 'Sel', count: presentCount, color: 'from-[#F994B7] to-[#F3689A]' },
+        { day: 'Rab', count: presentCount, color: 'from-[#FCA652] to-[#F58820]' },
+        { day: 'Kam', count: presentCount, color: 'from-[#FCD34D] to-[#F59E0B]' },
+        { day: 'Jum', count: presentCount, color: 'from-[#6EE7B7] to-[#34D399]' },
+        { day: 'Sab', count: presentCount, color: 'from-[#7DD3FC] to-[#38BDF8]' }
+      ];
+
+      const barContainer = document.getElementById('weekly-bar-chart');
+      barContainer.innerHTML = daysData
+        .map((d) => {
+          const pctHeight = d.count > 0 ? Math.max(25, Math.round((d.count / baseMax) * 100)) : 12;
+          const unitLabel = isGuru ? (d.count > 0 ? 'Hadir' : '0') : `${d.count} Guru`;
+          return `
+            <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+              <span class="text-[10px] font-extrabold text-slate-500 opacity-0 group-hover:opacity-100 transition">${unitLabel}</span>
+              <div class="w-full max-w-[38px] rounded-t-2xl bg-gradient-to-b ${d.color} shadow-md transition-all duration-500 hover:brightness-105" style="height: ${pctHeight}%"></div>
+              <span class="text-xs font-bold text-slate-500 pb-2">${d.day}</span>
+            </div>
+          `;
+        })
+        .join('');
+
+      // Render Donut Chart Percentages
+      const onTimeCount = visibleAttendances.filter((a) => a.status.includes('Tepat')).length;
+      const lateCount = visibleAttendances.filter((a) => a.status.includes('Terlambat')).length;
+      const izinCount = visibleLeaves.filter((l) => l.leave_type === 'Izin' || l.leave_type === 'Sakit').length;
+      const cutiCount = visibleLeaves.filter((l) => l.leave_type === 'Cuti' || l.leave_type === 'Tugas Dinas').length;
+      const rawTotal = onTimeCount + lateCount + izinCount + cutiCount;
+
+      const pHadir = rawTotal > 0 ? Math.round((onTimeCount / rawTotal) * 100) : 0;
+      const pTelat = rawTotal > 0 ? Math.round((lateCount / rawTotal) * 100) : 0;
+      const pIzin = rawTotal > 0 ? Math.round((izinCount / rawTotal) * 100) : 0;
+      const pCuti = rawTotal > 0 ? Math.max(0, 100 - (pHadir + pTelat + pIzin)) : 0;
+
+      document.getElementById('donut-center-total').textContent = rawTotal > 0 ? '100%' : '0%';
+      document.getElementById('legend-pct-hadir').textContent = `${pHadir}%`;
+      document.getElementById('legend-pct-telat').textContent = `${pTelat}%`;
+      document.getElementById('legend-pct-izin').textContent = `${pIzin}%`;
+      document.getElementById('legend-pct-cuti').textContent = `${pCuti}%`;
+
+      // Render Recent Attendance List
+      const recentContainer = document.getElementById('dashboard-recent-attendance');
+      const recentItems = visibleAttendances.slice(0, 4);
+      if (recentItems.length === 0) {
+        recentContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Belum ada aktivitas absensi yang tercatat.</p>`;
+      } else {
+        recentContainer.innerHTML = recentItems
+          .map((item) => {
+            const isLate = item.status.includes('Terlambat');
+            const badgeClass = isLate
+              ? 'bg-amber-100 text-amber-800'
+              : 'bg-emerald-100 text-emerald-800';
+            return `
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FAF7F5] hover:bg-slate-100/80 transition border border-slate-100">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  <div class="w-11 h-11 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600 font-extrabold text-sm flex-shrink-0">
+                    ${item.teacher_name.charAt(0)}
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="font-extrabold text-xs sm:text-sm text-slate-800 truncate">${item.teacher_name}</h4>
+                    <p class="text-[11px] text-slate-400 font-semibold">${item.attendance_date} • Masuk: ${item.check_in_time} • Pulang: ${item.check_out_time} • ${item.distance_meters} m</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-full text-[11px] font-extrabold ${badgeClass} whitespace-nowrap ml-2">
+                  ${item.status}
+                </span>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      // Render Top Punctual Teachers
+      const topTitle = document.getElementById('dash-top-teachers-title');
+      const topSubtitle = document.getElementById('dash-top-teachers-subtitle');
+      if (topTitle && topSubtitle) {
+        if (isGuru) {
+          topTitle.textContent = 'Profil & Kedisiplinan Saya';
+          topSubtitle.textContent = 'Informasi kepegawaian & performa kehadiran pribadi';
+        } else {
+          topTitle.textContent = 'Guru & Staf Terdisiplin';
+          topSubtitle.textContent = 'Berdasarkan ketepatan waktu & kehadiran';
+        }
+      }
+
+      const topContainer = document.getElementById('dashboard-top-teachers');
+      if (visibleTeachers.length === 0) {
+        topContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Belum ada data guru terdaftar. Silakan tambahkan melalui menu Data Guru.</p>`;
+      } else {
+        const rankColors = [
+          'bg-amber-100 text-amber-800',
+          'bg-orange-100 text-orange-800',
+          'bg-indigo-100 text-indigo-800',
+          'bg-purple-100 text-purple-800'
+        ];
+        topContainer.innerHTML = visibleTeachers
+          .slice(0, 4)
+          .map((t, idx) => {
+            return `
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FAF7F5] border border-slate-100">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="w-7 h-7 rounded-full ${rankColors[idx] || rankColors[0]} font-extrabold text-xs flex items-center justify-center flex-shrink-0">
+                    ${idx + 1}
+                  </span>
+                  <div class="min-w-0">
+                    <h4 class="font-extrabold text-xs sm:text-sm text-slate-800 truncate">${t.full_name}</h4>
+                    <p class="text-[11px] text-slate-400 font-semibold truncate">${t.position} (${t.employment_status}) • NIP. ${t.nip}</p>
+                  </div>
+                </div>
+                <span class="text-xs font-extrabold text-emerald-600 flex items-center gap-0.5 ml-2">
+                  <i class="ph-bold ph-arrow-up"></i> ${100 - idx * 2}%
+                </span>
+              </div>
+            `;
+          })
+          .join('');
+      }
+    }
+
+    // =========================================================================
+    // RENDER & CRUD MENU 2: INPUT DATA GURU & KARYAWAN
+    // =========================================================================
+    window.renderTeachersTable = () => {
+      const tbody = document.getElementById('teachers-table-body');
+      const statusFilter = document.getElementById('filter-teacher-status').value;
+      const q = appState.searchQuery;
+
+      const filtered = appState.teachers.filter((t) => {
+        const matchStatus = statusFilter === 'ALL' || t.employment_status === statusFilter;
+        const matchQuery =
+          !q ||
+          t.full_name.toLowerCase().includes(q) ||
+          t.nip.toLowerCase().includes(q) ||
+          t.position.toLowerCase().includes(q);
+        return matchStatus && matchQuery;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-semibold">Belum ada data guru terdaftar. Klik tombol "+ Tambah Guru Baru" untuk menambahkan data.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered
+        .map((t) => {
+          const badgeColors = {
+            PNS: 'bg-sky-100 text-sky-800',
+            PPPK: 'bg-indigo-100 text-indigo-800',
+            Honorer: 'bg-amber-100 text-amber-800',
+            Tendik: 'bg-emerald-100 text-emerald-800'
+          };
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3.5 px-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0">
+                    ${t.full_name.charAt(0)}
+                  </div>
+                  <div>
+                    <p class="font-extrabold text-slate-800">${t.full_name}</p>
+                    <p class="text-[11px] text-slate-400 font-semibold">NIP. ${t.nip}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-700">${t.position}</td>
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold ${badgeColors[t.employment_status] || 'bg-slate-100 text-slate-700'}">${t.employment_status}</span>
+                <p class="text-[11px] text-slate-400 mt-1">${t.rank_group || '-'}</p>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-[11px]">
+                  <i class="ph-fill ph-user text-indigo-500"></i> ${t.username}
+                  <span class="text-slate-300">|</span>
+                  <i class="ph-fill ph-key text-amber-500"></i> ${t.password}
+                </div>
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-600">${t.phone || '-'}</td>
+              <td class="py-3.5 px-4 text-right">
+                <div class="inline-flex items-center gap-1.5">
+                  <button onclick="window.editTeacher('${t.id}')" class="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition" title="Edit Guru">
+                    <i class="ph-bold ph-pencil-simple"></i>
+                  </button>
+                  <button onclick="window.deleteTeacher('${t.id}')" class="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus Guru">
+                    <i class="ph-bold ph-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    };
+
+    window.openTeacherModal = () => {
+      document.getElementById('teacher-modal-title').textContent = 'Tambah Data Guru / Staf Baru';
+      document.getElementById('teacher-form').reset();
+      document.getElementById('teacher-id').value = '';
+      document.getElementById('teacher-modal').classList.remove('hidden');
+    };
+
+    window.closeTeacherModal = () => {
+      document.getElementById('teacher-modal').classList.add('hidden');
+    };
+
+    window.editTeacher = (id) => {
+      const t = appState.teachers.find((item) => item.id === id);
+      if (!t) return;
+      document.getElementById('teacher-modal-title').textContent = 'Edit Data Guru / Karyawan';
+      document.getElementById('teacher-id').value = t.id;
+      document.getElementById('teacher-nip').value = t.nip;
+      document.getElementById('teacher-name').value = t.full_name;
+      document.getElementById('teacher-position').value = t.position;
+      document.getElementById('teacher-rank').value = t.rank_group || '';
+      document.getElementById('teacher-status').value = t.employment_status || 'PNS';
+      document.getElementById('teacher-phone').value = t.phone || '';
+      document.getElementById('teacher-username').value = t.username;
+      document.getElementById('teacher-password').value = t.password;
+      document.getElementById('teacher-modal').classList.remove('hidden');
+    };
+
+    document.getElementById('teacher-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('teacher-id').value;
+      const payload = {
+        nip: document.getElementById('teacher-nip').value.trim(),
+        full_name: document.getElementById('teacher-name').value.trim(),
+        position: document.getElementById('teacher-position').value.trim(),
+        rank_group: document.getElementById('teacher-rank').value.trim(),
+        employment_status: document.getElementById('teacher-status').value,
+        phone: document.getElementById('teacher-phone').value.trim(),
+        username: document.getElementById('teacher-username').value.trim(),
+        password: document.getElementById('teacher-password').value.trim(),
+        is_active: true
+      };
+
+      if (id) {
+        if (!IS_PREVIEW && supabase) {
+          const { error } = await supabase.from('teachers').update(payload).eq('id', id);
+          if (error) return showToast('Gagal memperbarui data: ' + error.message, 'error');
+        }
+        const idx = appState.teachers.findIndex((t) => t.id === id);
+        if (idx > -1) appState.teachers[idx] = { ...appState.teachers[idx], ...payload };
+        showToast('Data guru berhasil diperbarui!', 'success');
+      } else {
+        const newTeacher = { id: crypto.randomUUID(), ...payload };
+        if (!IS_PREVIEW && supabase) {
+          const { data, error } = await supabase.from('teachers').insert([newTeacher]).select().single();
+          if (error) return showToast('Gagal menyimpan ke database: ' + error.message, 'error');
+          appState.teachers.unshift(data);
+        } else {
+          appState.teachers.unshift(newTeacher);
+        }
+        showToast('Guru baru berhasil ditambahkan!', 'success');
+      }
+
+      window.closeTeacherModal();
+      refreshAllViews();
+    });
+
+    window.deleteTeacher = async (id) => {
+      const target = appState.teachers.find((t) => t.id === id);
+      if (!target) return;
+
+      if (!IS_PREVIEW && supabase) {
+        const { error } = await supabase.from('teachers').delete().eq('id', id);
+        if (error) return showToast('Gagal menghapus guru: ' + error.message, 'error');
+      }
+      appState.teachers = appState.teachers.filter((t) => t.id !== id);
+      refreshAllViews();
+      showToast(`Data ${target.full_name} telah dihapus.`, 'info');
+    };
+
+    // =========================================================================
+    // RENDER & LOGIKA MENU 3: ABSENSI (MASUK & PULANG) + RADIUS JARAK LOKASI
+    // =========================================================================
+    function populateTeacherDropdowns() {
+      const attSelect = document.getElementById('att-teacher-select');
+      const leaveSelect = document.getElementById('leave-teacher-select');
+      const reportSelect = document.getElementById('report-teacher-filter');
+
+      const visibleTeachers = getVisibleTeachers();
+      const isGuru = isGuruSession();
+
+      if (visibleTeachers.length === 0) {
+        const emptyOpt = `<option value="">-- Belum Ada Data Guru --</option>`;
+        attSelect.innerHTML = emptyOpt;
+        leaveSelect.innerHTML = emptyOpt;
+        reportSelect.innerHTML = `<option value="ALL">Semua Guru & Staf (0 Orang)</option>`;
+        return;
+      }
+
+      const optionsHtml = visibleTeachers
+        .map((t) => `<option value="${t.id}">${t.full_name} (NIP. ${t.nip})</option>`)
+        .join('');
+
+      attSelect.innerHTML = optionsHtml;
+      leaveSelect.innerHTML = optionsHtml;
+
+      if (isGuru) {
+        reportSelect.innerHTML = optionsHtml;
+        if (appState.currentUser?.teacherId) {
+          attSelect.value = appState.currentUser.teacherId;
+          leaveSelect.value = appState.currentUser.teacherId;
+          reportSelect.value = appState.currentUser.teacherId;
+        }
+        attSelect.disabled = true;
+        leaveSelect.disabled = true;
+        reportSelect.disabled = true;
+      } else {
+        reportSelect.innerHTML = `<option value="ALL">Semua Guru & Staf (${visibleTeachers.length} Orang)</option>` + optionsHtml;
+        attSelect.disabled = false;
+        leaveSelect.disabled = false;
+        reportSelect.disabled = false;
+      }
+    }
+
+    function updateGeolocationUI() {
+      const s = appState.settings;
+      const dist = calculateDistanceMeters(
+        appState.currentGPS.lat,
+        appState.currentGPS.lng,
+        Number(s.school_lat),
+        Number(s.school_lng)
+      );
+      const isInside = dist <= Number(s.max_radius_meters);
+      appState.currentGPS.distanceMeters = dist;
+      appState.currentGPS.withinRadius = isInside;
+
+      const box = document.getElementById('att-radius-status-box');
+      const iconBox = document.getElementById('att-radius-icon');
+      const badge = document.getElementById('att-radius-badge');
+      const distText = document.getElementById('att-distance-text');
+      const coordsText = document.getElementById('att-coords-text');
+      const radarDot = document.getElementById('radar-user-dot');
+      const infoDist = document.getElementById('info-current-distance');
+
+      distText.textContent = `Jarak Anda: ${dist} Meter dari Titik Sekolah`;
+      coordsText.textContent = `Koordinat Anda: ${appState.currentGPS.lat.toFixed(5)}, ${appState.currentGPS.lng.toFixed(5)} (Maks: ${s.max_radius_meters}m)`;
+      infoDist.textContent = `${dist} Meter`;
+
+      document.getElementById('radar-school-coords').textContent = `Pusat: ${Number(s.school_lat).toFixed(4)}, ${Number(s.school_lng).toFixed(4)}`;
+      document.getElementById('radar-max-radius').textContent = `Radius Maks: ${s.max_radius_meters}m`;
+      document.getElementById('info-work-start').textContent = `${s.work_start_time} WIT`;
+      document.getElementById('info-work-end').textContent = `${s.work_end_time} WIT`;
+
+      if (isInside) {
+        box.className = 'p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200/80 flex items-center justify-between gap-4';
+        iconBox.className = 'w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md flex-shrink-0';
+        badge.className = 'text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900';
+        badge.textContent = 'DI DALAM RADIUS LOKASI ABSENSI ✓';
+        radarDot.className = 'absolute top-14 right-14 w-7 h-7 rounded-full bg-emerald-400 text-slate-950 font-extrabold text-[10px] flex items-center justify-center shadow-lg border-2 border-white transition-all duration-500';
+        infoDist.className = 'text-xs font-extrabold text-emerald-600';
+      } else {
+        box.className = 'p-4 rounded-2xl bg-rose-50 border-2 border-rose-200/80 flex items-center justify-between gap-4';
+        iconBox.className = 'w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-md flex-shrink-0';
+        badge.className = 'text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900';
+        badge.textContent = 'ANDA BERADA DILUAR RADIUS ABSENSI !';
+        distText.textContent = `anda berada diluar radius absensi (${dist} Meter dari Sekolah)`;
+        radarDot.className = 'absolute top-3 right-3 w-7 h-7 rounded-full bg-rose-500 text-white font-extrabold text-[10px] flex items-center justify-center shadow-lg border-2 border-white transition-all duration-500';
+        infoDist.className = 'text-xs font-extrabold text-rose-600';
+      }
+    }
+
+    window.detectRealGPS = () => {
+      if (!navigator.geolocation) {
+        return showToast('Browser perangkat ini tidak mendukung sensor Geolocation.', 'error');
+      }
+      showToast('Membaca titik koordinat GPS perangkat...', 'info');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          appState.currentGPS.lat = pos.coords.latitude;
+          appState.currentGPS.lng = pos.coords.longitude;
+          updateGeolocationUI();
+          showToast('Koordinat GPS perangkat berhasil diperbarui!', 'success');
+        },
+        () => {
+          showToast('Akses lokasi ditolak browser. Gunakan tombol Simulasi Radius untuk uji coba.', 'info');
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    };
+
+    window.simulateLocation = (mode) => {
+      const s = appState.settings;
+      if (mode === 'inside') {
+        appState.currentGPS.lat = Number(s.school_lat) + 0.00015;
+        appState.currentGPS.lng = Number(s.school_lng) + 0.00013;
+        updateGeolocationUI();
+        showToast('Simulasi GPS: Posisi berada di dalam lingkungan SMP Negeri 42 Buru.', 'success');
+      } else {
+        appState.currentGPS.lat = Number(s.school_lat) + 0.0035;
+        appState.currentGPS.lng = Number(s.school_lng) + 0.0032;
+        updateGeolocationUI();
+        showToast('anda berada diluar radius absensi', 'error');
+      }
+    };
+
+    window.submitAttendance = async (mode) => {
+      const teacherId = document.getElementById('att-teacher-select').value;
+      const teacher = appState.teachers.find((t) => t.id === teacherId);
+      if (!teacher) return showToast('Pilih nama guru terlebih dahulu (atau tambahkan guru di menu Data Guru).', 'error');
+
+      // Perbarui kalkulasi terhadap radius yang dikunci Admin
+      updateGeolocationUI();
+
+      // Validasi Radius Lokasi: Jika di luar radius, munculkan pesan dan jangan simpan ke daftar Admin
+      if (!appState.currentGPS.withinRadius || appState.currentGPS.distanceMeters > Number(appState.settings.max_radius_meters)) {
+        return showToast('anda berada diluar radius absensi', 'error');
+      }
+
+      const now = new Date();
+      const currentHHMMSS = now.toTimeString().slice(0, 8); // Format HH:MM:SS sesuai tabel contoh
+      const currentHHMM = now.toTimeString().slice(0, 5);
+      const isLate = currentHHMM > appState.settings.work_start_time;
+      const defaultNote = isLate ? 'Hadir Terlambat' : 'Hadir Tepat Waktu';
+      const notes = document.getElementById('att-notes-input').value.trim() || defaultNote;
+
+      let existingRecord = appState.attendances.find(
+        (a) => a.teacher_id === teacher.id && a.attendance_date === todayISO
+      );
+
+      if (mode === 'MASUK') {
+        if (existingRecord) {
+          return showToast(`${teacher.full_name} sudah melakukan Absen Masuk hari ini pada pukul ${existingRecord.check_in_time}.`, 'info');
+        }
+        const newAtt = {
+          id: crypto.randomUUID(),
+          teacher_id: teacher.id,
+          teacher_name: teacher.full_name,
+          teacher_nip: teacher.nip,
+          attendance_date: todayISO,
+          check_in_time: currentHHMMSS,
+          check_out_time: '-',
+          check_in_lat: appState.currentGPS.lat,
+          check_in_lng: appState.currentGPS.lng,
+          distance_meters: appState.currentGPS.distanceMeters,
+          within_radius: true,
+          status: isLate ? 'Terlambat' : 'Tepat Waktu',
+          notes
+        };
+
+        if (!IS_PREVIEW && supabase) {
+          const { data, error } = await supabase.from('attendances').insert([newAtt]).select().single();
+          if (error) return showToast('Gagal mencatat absen masuk: ' + error.message, 'error');
+          appState.attendances.unshift(data);
+        } else {
+          appState.attendances.unshift(newAtt);
+        }
+
+        document.getElementById('att-notes-input').value = '';
+        refreshAllViews();
+        showToast(`Absen MASUK berhasil untuk ${teacher.full_name} (${appState.currentGPS.distanceMeters} m dari sekolah).`, 'success');
+      } else {
+        // MODE PULANG
+        if (!existingRecord) {
+          return showToast(`${teacher.full_name} belum melakukan Absen Masuk hari ini!`, 'error');
+        }
+        existingRecord.check_out_time = currentHHMMSS;
+        if (document.getElementById('att-notes-input').value.trim()) {
+          existingRecord.notes = document.getElementById('att-notes-input').value.trim();
+        }
+
+        if (!IS_PREVIEW && supabase) {
+          const { error } = await supabase
+            .from('attendances')
+            .update({ check_out_time: currentHHMMSS, notes: existingRecord.notes })
+            .eq('id', existingRecord.id);
+          if (error) return showToast('Gagal mencatat absen pulang: ' + error.message, 'error');
+        }
+
+        refreshAllViews();
+        showToast(`Absen PULANG berhasil dicatat pukul ${currentHHMMSS} untuk ${teacher.full_name}.`, 'success');
+      }
+    };
+
+    window.renderAttendanceTable = () => {
+      const tbody = document.getElementById('attendance-table-body');
+      const filterDate = document.getElementById('filter-attendance-date').value;
+      const q = appState.searchQuery;
+      const visibleAttendances = getVisibleAttendances();
+
+      const list = visibleAttendances.filter((a) => {
+        const matchDate = !filterDate || a.attendance_date === filterDate;
+        const matchQ = !q || a.teacher_name.toLowerCase().includes(q) || a.teacher_nip.includes(q);
+        return matchDate && matchQ;
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400 font-semibold">Belum ada data presensi yang tercatat.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list
+        .map((a) => {
+          const statusBadge = a.status.includes('Terlambat')
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-emerald-100 text-emerald-800';
+          const jobAndStatus = getTeacherJobAndStatus(a.teacher_id, a.teacher_name);
+          const outDisplay = !a.check_out_time || a.check_out_time === '--:--' ? '-' : a.check_out_time;
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3 px-4 font-bold text-slate-700">${a.attendance_date}</td>
+              <td class="py-3 px-4">
+                <p class="font-extrabold text-slate-800">${a.teacher_name}</p>
+                <p class="text-[11px] text-slate-400">NIP. ${a.teacher_nip}</p>
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-700">${jobAndStatus}</td>
+              <td class="py-3 px-4 font-mono font-bold text-emerald-600">${a.check_in_time}</td>
+              <td class="py-3 px-4 font-mono font-bold text-indigo-600">${outDisplay}</td>
+              <td class="py-3 px-4">
+                <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 font-extrabold text-[11px]">${a.distance_meters} m</span>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-3 py-1 rounded-full text-[11px] font-extrabold ${statusBadge}">${a.status}</span>
+              </td>
+              <td class="py-3 px-4 text-right">
+                ${
+                  !isGuruSession()
+                    ? `<button onclick="window.deleteAttendance('${a.id}')" class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus Log">
+                        <i class="ph-bold ph-trash"></i>
+                      </button>`
+                    : `<span class="text-[11px] font-bold text-slate-400">Terekam</span>`
+                }
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    };
+
+    window.deleteAttendance = async (id) => {
+      if (!IS_PREVIEW && supabase) {
+        await supabase.from('attendances').delete().eq('id', id);
+      }
+      appState.attendances = appState.attendances.filter((a) => a.id !== id);
+      refreshAllViews();
+      showToast('Data riwayat absensi berhasil dihapus.', 'info');
+    };
+
+    // =========================================================================
+    // RENDER & LOGIKA MENU 4: PENGAJUAN IZIN / CUTI (PDF UPLOAD & LINK SURAT)
+    // =========================================================================
+    const readFileAsDataURL = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+    document.getElementById('leave-request-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const teacherId = document.getElementById('leave-teacher-select').value;
+      const teacher = appState.teachers.find((t) => t.id === teacherId);
+      if (!teacher) return showToast('Pilih nama guru terlebih dahulu.', 'error');
+
+      const leaveType = document.getElementById('leave-type').value;
+      const startDate = document.getElementById('leave-start-date').value;
+      const endDate = document.getElementById('leave-end-date').value;
+      const reason = document.getElementById('leave-reason').value.trim();
+      const letterLink = document.getElementById('leave-letter-link').value.trim();
+      const pdfFileInput = document.getElementById('leave-pdf-file');
+
+      let pdfDataUrl = '';
+      let pdfFileName = '';
+
+      if (pdfFileInput.files && pdfFileInput.files[0]) {
+        const file = pdfFileInput.files[0];
+        if (file.size > 2.5 * 1024 * 1024) {
+          return showToast('Ukuran file PDF maksimal 2.5 MB.', 'error');
+        }
+        pdfFileName = file.name;
+        pdfDataUrl = await readFileAsDataURL(file);
+      }
+
+      if (!pdfDataUrl && !letterLink) {
+        return showToast('Harap sertakan minimal File PDF atau Link Surat Izin/Cuti!', 'error');
+      }
+
+      const newLeave = {
+        id: crypto.randomUUID(),
+        teacher_id: teacher.id,
+        teacher_name: teacher.full_name,
+        teacher_nip: teacher.nip,
+        leave_type: leaveType,
+        start_date: startDate,
+        end_date: endDate,
+        reason,
+        pdf_file_data: pdfDataUrl,
+        pdf_file_name: pdfFileName || 'Lampiran_Surat.pdf',
+        letter_link: letterLink,
+        approval_status: 'Menunggu',
+        approved_by: '-'
+      };
+
+      if (!IS_PREVIEW && supabase) {
+        const { data, error } = await supabase.from('leave_requests').insert([newLeave]).select().single();
+        if (error) return showToast('Gagal mengirim permohonan izin: ' + error.message, 'error');
+        appState.leaveRequests.unshift(data);
+      } else {
+        appState.leaveRequests.unshift(newLeave);
+      }
+
+      document.getElementById('leave-request-form').reset();
+      document.getElementById('leave-start-date').value = todayISO;
+      document.getElementById('leave-end-date').value = todayISO;
+      refreshAllViews();
+      showToast('Permohonan Izin/Cuti beserta dokumen berhasil dikirim!', 'success');
+    });
+
+    window.renderLeavesList = () => {
+      const container = document.getElementById('leaves-list-container');
+      const statusFilter = document.getElementById('filter-leave-status').value;
+      const q = appState.searchQuery;
+      const visibleLeaves = getVisibleLeaveRequests();
+
+      const filtered = visibleLeaves.filter((l) => {
+        const matchStatus = statusFilter === 'ALL' || l.approval_status === statusFilter;
+        const matchQ = !q || l.teacher_name.toLowerCase().includes(q) || l.leave_type.toLowerCase().includes(q);
+        return matchStatus && matchQ;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs font-semibold">Belum ada data pengajuan izin/cuti.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered
+        .map((l) => {
+          const statusStyles = {
+            Menunggu: 'bg-amber-100 text-amber-800',
+            Disetujui: 'bg-emerald-100 text-emerald-800',
+            Ditolak: 'bg-rose-100 text-rose-800'
+          };
+          const typeStyles = {
+            Izin: 'bg-indigo-100 text-indigo-700',
+            Sakit: 'bg-rose-100 text-rose-700',
+            Cuti: 'bg-purple-100 text-purple-700',
+            'Tugas Dinas': 'bg-sky-100 text-sky-700'
+          };
+
+          const hasPdf = Boolean(l.pdf_file_data);
+          const hasLink = Boolean(l.letter_link);
+          const isAdmin = appState.currentUser?.role === 'admin';
+
+          return `
+            <div class="p-4 rounded-3xl bg-[#FAF7F5] border border-slate-200/70 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center font-extrabold text-indigo-600 text-sm">
+                    ${l.teacher_name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-xs sm:text-sm text-slate-900">${l.teacher_name}</h4>
+                    <p class="text-[11px] text-slate-400 font-semibold">NIP. ${l.teacher_nip} • Tanggal: ${l.start_date} s/d ${l.end_date}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-full text-[10px] font-extrabold ${typeStyles[l.leave_type] || 'bg-slate-200'}">${l.leave_type}</span>
+                  <span class="px-3 py-1 rounded-full text-[10px] font-extrabold ${statusStyles[l.approval_status]}">${l.approval_status}</span>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 font-medium bg-white p-3 rounded-2xl border border-slate-100">
+                "${l.reason}"
+              </p>
+
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <!-- Lampiran PDF & Link Surat -->
+                <div class="flex flex-wrap items-center gap-2">
+                  ${
+                    hasPdf
+                      ? `<button onclick="window.openPdfPreview('${l.id}')" class="px-3.5 py-1.5 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-extrabold transition flex items-center gap-1.5">
+                          <i class="ph-fill ph-file-pdf text-sm"></i> Buka File PDF (${l.pdf_file_name || 'Surat.pdf'})
+                        </button>`
+                      : ''
+                  }
+                  ${
+                    hasLink
+                      ? `<a href="${l.letter_link}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-sky-100 hover:bg-sky-200 text-sky-700 text-[11px] font-extrabold transition flex items-center gap-1.5">
+                          <i class="ph-bold ph-arrow-square-out text-sm"></i> Buka Link Surat
+                        </a>`
+                      : ''
+                  }
+                </div>
+
+                <!-- Tombol Aksi Persetujuan Admin -->
+                <div class="flex items-center gap-1.5">
+                  ${
+                    isAdmin
+                      ? `
+                        <button onclick="window.updateLeaveStatus('${l.id}', 'Disetujui')" class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-extrabold transition flex items-center gap-1">
+                          <i class="ph-bold ph-check"></i> Setujui
+                        </button>
+                        <button onclick="window.updateLeaveStatus('${l.id}', 'Ditolak')" class="px-3 py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-extrabold transition flex items-center gap-1">
+                          <i class="ph-bold ph-x"></i> Tolak
+                        </button>
+                      `
+                      : ''
+                  }
+                  <button onclick="window.deleteLeaveRequest('${l.id}')" class="p-1.5 rounded-full bg-slate-200/70 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition" title="Hapus">
+                    <i class="ph-bold ph-trash text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    };
+
+    window.openPdfPreview = (leaveId) => {
+      const item = appState.leaveRequests.find((l) => l.id === leaveId);
+      if (!item || !item.pdf_file_data) return;
+
+      document.getElementById('pdf-modal-title').textContent = item.pdf_file_name || 'Surat_Izin.pdf';
+      document.getElementById('pdf-modal-iframe').src = item.pdf_file_data;
+      const dl = document.getElementById('pdf-modal-download');
+      dl.href = item.pdf_file_data;
+      dl.download = item.pdf_file_name || 'Surat_Izin_SMPN42Buru.pdf';
+      document.getElementById('pdf-preview-modal').classList.remove('hidden');
+    };
+
+    window.closePdfModal = () => {
+      document.getElementById('pdf-preview-modal').classList.add('hidden');
+      document.getElementById('pdf-modal-iframe').src = '';
+    };
+
+    window.updateLeaveStatus = async (id, newStatus) => {
+      const item = appState.leaveRequests.find((l) => l.id === id);
+      if (!item) return;
+
+      item.approval_status = newStatus;
+      item.approved_by = appState.settings.principal_name;
+
+      if (!IS_PREVIEW && supabase) {
+        await supabase
+          .from('leave_requests')
+          .update({ approval_status: newStatus, approved_by: item.approved_by })
+          .eq('id', id);
+      }
+
+      refreshAllViews();
+      showToast(`Status pengajuan ${item.teacher_name} diubah menjadi: ${newStatus}`, 'success');
+    };
+
+    window.deleteLeaveRequest = async (id) => {
+      if (!IS_PREVIEW && supabase) {
+        await supabase.from('leave_requests').delete().eq('id', id);
+      }
+      appState.leaveRequests = appState.leaveRequests.filter((l) => l.id !== id);
+      refreshAllViews();
+      showToast('Data permohonan izin/cuti telah dihapus.', 'info');
+    };
+
+    // =========================================================================
+    // RENDER MENU 5: LAPORAN RESMI & CETAK PDF (PAS KERTAS A4 TANPA TERPOTONG)
+    // =========================================================================
+    window.renderFormalReport = () => {
+      const s = appState.settings;
+      const reportType = document.getElementById('report-type-select').value;
+      const isGuru = isGuruSession();
+      const teacherFilter = isGuru
+        ? appState.currentUser.teacherId
+        : document.getElementById('report-teacher-filter').value;
+
+      const startDateInput = document.getElementById('report-start-date')?.value || startOfMonthISO;
+      const endDateInput = document.getElementById('report-end-date')?.value || todayISO;
+
+      const visibleTeachers = getVisibleTeachers();
+      const visibleAttendances = getVisibleAttendances();
+      const visibleLeaves = getVisibleLeaveRequests();
+
+      // Sinkronisasi Kop Surat, Logo Daerah, Logo Instansi, dan Tanda Tangan
+      document.getElementById('print-logo-daerah').src = s.logo_daerah_url;
+      document.getElementById('print-logo-instansi').src = s.logo_instansi_url;
+      document.getElementById('print-kop-line1').textContent = s.kop_line1;
+      document.getElementById('print-kop-line2').textContent = s.kop_line2;
+      document.getElementById('print-kop-line3').textContent = s.kop_line3;
+      document.getElementById('print-kop-address').textContent = s.school_address;
+      document.getElementById('print-principal-name').textContent = s.principal_name;
+      document.getElementById('print-principal-nip').textContent = `NIP. ${s.principal_nip}`;
+      document.getElementById('print-admin-name').textContent = isGuru ? appState.currentUser.name : s.admin_name;
+      document.getElementById('print-admin-nip').textContent = isGuru ? `NIP. ${appState.currentUser.nip || '-'}` : `NIP. ${s.admin_nip}`;
+
+      const dateFormatted = new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      document.getElementById('print-sign-date').textContent = `Buru, ${dateFormatted}`;
+
+      const periodEl = document.getElementById('print-doc-period');
+      if (periodEl) {
+        periodEl.textContent = `Periode Tanggal: ${startDateInput} s/d ${endDateInput}`;
+      }
+
+      const thead = document.getElementById('print-table-head');
+      const tbody = document.getElementById('print-table-body');
+
+      if (reportType === 'ATTENDANCE_DETAIL') {
+        document.getElementById('print-doc-title').textContent = 'LAPORAN KEHADIRAN HARIAN GURU DAN KARYAWAN';
+        // 9 Kolom Persentase Presisi (Total = 100%) agar pas kertas A4 & tidak pernah terpotong
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 4.5%;" class="text-center">No</th>
+            <th style="width: 21.5%;" class="text-left">Nama Guru / NIP</th>
+            <th style="width: 17%;" class="text-left">Jabatan & Status</th>
+            <th style="width: 9.5%;" class="text-center">Tanggal</th>
+            <th style="width: 9.5%;" class="text-center">Jam<br/>Masuk</th>
+            <th style="width: 9.5%;" class="text-center">Jam<br/>Pulang</th>
+            <th style="width: 7.5%;" class="text-center">Jarak<br/>GPS</th>
+            <th style="width: 9.5%;" class="text-center">Status</th>
+            <th style="width: 11.5%;" class="text-left">Keterangan</th>
+          </tr>
+        `;
+
+        const rows = visibleAttendances.filter((a) => {
+          const matchTeacher = teacherFilter === 'ALL' || a.teacher_id === teacherFilter;
+          const matchPeriod =
+            (!startDateInput || a.attendance_date >= startDateInput) &&
+            (!endDateInput || a.attendance_date <= endDateInput);
+          return matchTeacher && matchPeriod;
+        });
+
+        if (rows.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" class="text-center py-6 text-slate-500">Belum ada data kehadiran pada periode tanggal tersebut.</td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = rows
+            .map((r, idx) => {
+              const jobAndStatus = getTeacherJobAndStatus(r.teacher_id, r.teacher_name);
+              const checkOutDisplay = !r.check_out_time || r.check_out_time === '--:--' ? '-' : r.check_out_time;
+              const statusShort = r.status.includes('Terlambat') ? 'Terlambat' : 'Tepat Waktu';
+              const ketDisplay = r.notes || (statusShort === 'Terlambat' ? 'Hadir Terlambat' : 'Hadir Tepat Waktu');
+              const dateParts = (r.attendance_date || '').split('-');
+              const formattedDateCell =
+                dateParts.length === 3
+                  ? `${dateParts[0]}-${dateParts[1]}-<br/>${dateParts[2]}`
+                  : r.attendance_date;
+
+              return `
+                <tr>
+                  <td class="text-center font-medium">${idx + 1}</td>
+                  <td class="text-left">
+                    <div class="font-bold text-[#0F172A] leading-snug">${r.teacher_name}</div>
+                    <div class="text-[10px] font-medium text-[#334155] mt-0.5">NIP. ${r.teacher_nip}</div>
+                  </td>
+                  <td class="text-left font-medium text-[#0F172A]">${jobAndStatus}</td>
+                  <td class="text-center font-medium leading-tight">${formattedDateCell}</td>
+                  <td class="text-center font-mono text-[10.5px] font-medium">${r.check_in_time}</td>
+                  <td class="text-center font-mono text-[10.5px] font-medium">${checkOutDisplay}</td>
+                  <td class="text-center font-medium">${r.distance_meters} m</td>
+                  <td class="text-center font-bold text-[#0F172A]">${statusShort}</td>
+                  <td class="text-left font-medium text-[#0F172A] leading-snug">${ketDisplay}</td>
+                </tr>
+              `;
+            })
+            .join('');
+        }
+      } else if (reportType === 'TEACHER_SUMMARY') {
+        document.getElementById('print-doc-title').textContent = 'REKAPITULASI AKUMULASI KEHADIRAN GURU DAN KARYAWAN';
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 5%;" class="text-center">No</th>
+            <th style="width: 26%;" class="text-left">Nama Guru / NIP</th>
+            <th style="width: 20%;" class="text-left">Jabatan & Status</th>
+            <th style="width: 13%;" class="text-center">Hadir Tepat Waktu</th>
+            <th style="width: 13%;" class="text-center">Hadir Terlambat</th>
+            <th style="width: 12%;" class="text-center">Izin / Sakit / Cuti</th>
+            <th style="width: 11%;" class="text-left">Keterangan</th>
+          </tr>
+        `;
+
+        const teachersList = visibleTeachers.filter(
+          (t) => teacherFilter === 'ALL' || t.id === teacherFilter
+        );
+
+        if (teachersList.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-6 text-slate-500">Belum ada data guru terdaftar.</td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = teachersList
+            .map((t, idx) => {
+              const onTime = visibleAttendances.filter(
+                (a) => a.teacher_id === t.id && a.status.includes('Tepat')
+              ).length;
+              const late = visibleAttendances.filter(
+                (a) => a.teacher_id === t.id && a.status.includes('Terlambat')
+              ).length;
+              const leaves = visibleLeaves.filter((l) => l.teacher_id === t.id).length;
+              const jobAndStatus = `${t.position} (${t.employment_status})`;
+
+              return `
+                <tr>
+                  <td class="text-center font-medium">${idx + 1}</td>
+                  <td class="text-left">
+                    <div class="font-bold text-[#0F172A]">${t.full_name}</div>
+                    <div class="text-[10px] font-medium text-[#334155] mt-0.5">NIP. ${t.nip}</div>
+                  </td>
+                  <td class="text-left font-medium">${jobAndStatus}</td>
+                  <td class="text-center font-bold">${onTime} Hari</td>
+                  <td class="text-center font-bold">${late} Hari</td>
+                  <td class="text-center font-medium">${leaves} Kali</td>
+                  <td class="text-left font-medium">Aktif</td>
+                </tr>
+              `;
+            })
+            .join('');
+        }
+      } else {
+        document.getElementById('print-doc-title').textContent = 'LAPORAN PENGAJUAN IZIN, SAKIT, DAN CUTI GURU & KARYAWAN';
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 5%;" class="text-center">No</th>
+            <th style="width: 22%;" class="text-left">Nama Guru / NIP</th>
+            <th style="width: 17%;" class="text-left">Jabatan & Status</th>
+            <th style="width: 11%;" class="text-center">Jenis</th>
+            <th style="width: 15%;" class="text-center">Tanggal</th>
+            <th style="width: 19%;" class="text-left">Alasan / Keterangan</th>
+            <th style="width: 11%;" class="text-center">Status</th>
+          </tr>
+        `;
+
+        const leaves = visibleLeaves.filter(
+          (l) => teacherFilter === 'ALL' || l.teacher_id === teacherFilter
+        );
+
+        if (leaves.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-6 text-slate-500">Belum ada data pengajuan izin/cuti.</td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = leaves
+            .map((l, idx) => {
+              const jobAndStatus = getTeacherJobAndStatus(l.teacher_id, l.teacher_name);
+              return `
+                <tr>
+                  <td class="text-center font-medium">${idx + 1}</td>
+                  <td class="text-left">
+                    <div class="font-bold text-[#0F172A]">${l.teacher_name}</div>
+                    <div class="text-[10px] font-medium text-[#334155] mt-0.5">NIP. ${l.teacher_nip}</div>
+                  </td>
+                  <td class="text-left font-medium">${jobAndStatus}</td>
+                  <td class="text-center font-bold">${l.leave_type}</td>
+                  <td class="text-center font-medium">${l.start_date} s/d ${l.end_date}</td>
+                  <td class="text-left font-medium">${l.reason}</td>
+                  <td class="text-center font-bold">${l.approval_status}</td>
+                </tr>
+              `;
+            })
+            .join('');
+        }
+      }
+    };
+
+    window.printFormalPDF = async () => {
+      window.renderFormalReport();
+
+      const reportArea = document.getElementById('printable-report-area');
+      const btn = document.getElementById('btn-print-pdf');
+      const btnText = document.getElementById('btn-print-pdf-text');
+      const btnIcon = document.getElementById('btn-print-pdf-icon');
+
+      if (!reportArea) return;
+
+      const reportType = document.getElementById('report-type-select')?.value || 'LAPORAN';
+      const userSuffix = isGuruSession()
+        ? (appState.currentUser?.name || 'Guru').replace(/[^a-zA-Z0-9]/g, '_')
+        : 'SMPN42_Buru';
+      const fileName = `Laporan_${reportType}_${userSuffix}_${todayISO}.pdf`;
+
+      if (btn && btnText && btnIcon) {
+        btn.disabled = true;
+        btn.classList.add('opacity-75');
+        btnIcon.className = 'ph-bold ph-spinner animate-spin text-base';
+        btnText.textContent = 'Mengunduh PDF...';
+      }
+
+      showToast('Sedang memproses & mengunduh file PDF (A4)...', 'info');
+
+      try {
+        if (typeof window.html2pdf !== 'undefined') {
+          // Lebar kanvas dikunci tepat 718px (= 190mm area cetak bersih A4 Portrait dengan margin kiri/kanan 10mm)
+          const exactA4PrintableWidthPx = 718;
+
+          const cloneContainer = document.createElement('div');
+          cloneContainer.style.position = 'fixed';
+          cloneContainer.style.left = '0';
+          cloneContainer.style.top = '0';
+          cloneContainer.style.zIndex = '-9999';
+          cloneContainer.style.opacity = '0';
+          cloneContainer.style.pointerEvents = 'none';
+          cloneContainer.style.width = `${exactA4PrintableWidthPx}px`;
+          cloneContainer.style.maxWidth = `${exactA4PrintableWidthPx}px`;
+          cloneContainer.style.background = '#FFFFFF';
+          cloneContainer.style.color = '#0F172A';
+          cloneContainer.style.padding = '0';
+          cloneContainer.style.margin = '0';
+          cloneContainer.style.boxSizing = 'border-box';
+
+          const clonedSheet = reportArea.cloneNode(true);
+          clonedSheet.className = 'bg-white text-[#0F172A] font-sans';
+          clonedSheet.style.width = `${exactA4PrintableWidthPx}px`;
+          clonedSheet.style.maxWidth = `${exactA4PrintableWidthPx}px`;
+          clonedSheet.style.boxShadow = 'none';
+          clonedSheet.style.border = 'none';
+          clonedSheet.style.padding = '4px 6px';
+          clonedSheet.style.margin = '0';
+          clonedSheet.style.boxSizing = 'border-box';
+
+          const imgs = clonedSheet.querySelectorAll('img');
+          imgs.forEach((img, idx) => {
+            if (img.src && img.src.includes('placehold.co')) {
+              img.src = idx === 0 ? defaultLogoDaerahSvg : defaultLogoInstansiSvg;
+            }
+          });
+
+          cloneContainer.appendChild(clonedSheet);
+          document.body.appendChild(cloneContainer);
+
+          const pdfOptions = {
+            margin: [10, 10, 10, 10],
+            filename: fileName,
+            image: { type: 'jpeg', quality: 0.98 },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: '#FFFFFF',
+              width: exactA4PrintableWidthPx,
+              windowWidth: exactA4PrintableWidthPx,
+              scrollX: 0,
+              scrollY: 0,
+              logging: false
+            },
+            jsPDF: {
+              unit: 'mm',
+              format: 'a4',
+              orientation: 'portrait'
+            }
+          };
+
+          const pdfBlob = await window.html2pdf().set(pdfOptions).from(clonedSheet).outputPdf('blob');
+          document.body.removeChild(cloneContainer);
+
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          const downloadLink = document.createElement('a');
+          downloadLink.href = blobUrl;
+          downloadLink.download = fileName;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+
+          showToast(`File PDF berhasil diunduh: ${fileName}`, 'success');
+        } else {
+          window.print();
+        }
+      } catch (err) {
+        console.error('PDF Download Error:', err);
+        window.print();
+        showToast('Membuka dialog cetak PDF alternatif.', 'info');
+      } finally {
+        if (btn && btnText && btnIcon) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-75');
+          btnIcon.className = 'ph-bold ph-download-simple text-base';
+          btnText.textContent = 'Cetak / Simpan PDF (A4)';
+        }
+      }
+    };
+
+    // =========================================================================
+    // RENDER & SIMPAN MENU 6: PENGATURAN / SETTING APLIKASI & INSTANSI
+    // =========================================================================
+    window.toggleRadiusLock = (locked) => {
+      appState.radiusLocked = Boolean(locked);
+      const latInput = document.getElementById('set-school-lat');
+      const lngInput = document.getElementById('set-school-lng');
+      const radInput = document.getElementById('set-max-radius');
+      const lockBadge = document.getElementById('radius-lock-badge');
+      const btnUnlock = document.getElementById('btn-unlock-radius');
+      const btnGps = document.getElementById('btn-get-current-gps');
+
+      if (latInput && lngInput && radInput) {
+        latInput.readOnly = appState.radiusLocked;
+        lngInput.readOnly = appState.radiusLocked;
+        radInput.readOnly = appState.radiusLocked;
+
+        const lockStyle = appState.radiusLocked ? 'opacity-70 cursor-not-allowed bg-slate-200/70' : '';
+        latInput.className = `w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 ${lockStyle}`;
+        lngInput.className = `w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 ${lockStyle}`;
+        radInput.className = `w-full px-3.5 py-2 rounded-2xl clay-Input-pill text-xs font-bold text-slate-800 ${lockStyle}`;
+      }
+
+      if (lockBadge && btnUnlock && btnGps) {
+        if (appState.radiusLocked) {
+          lockBadge.classList.remove('hidden');
+          lockBadge.classList.add('inline-flex');
+          btnUnlock.classList.remove('hidden');
+          btnUnlock.classList.add('inline-flex');
+          btnGps.classList.add('hidden');
+        } else {
+          lockBadge.classList.add('hidden');
+          lockBadge.classList.remove('inline-flex');
+          btnUnlock.classList.add('hidden');
+          btnUnlock.classList.remove('inline-flex');
+          btnGps.classList.remove('hidden');
+        }
+      }
+    };
+
+    function populateSettingsForm() {
+      const s = appState.settings;
+      document.getElementById('set-app-name').value = s.app_name;
+      document.getElementById('set-kop-1').value = s.kop_line1;
+      document.getElementById('set-kop-2').value = s.kop_line2;
+      document.getElementById('set-kop-3').value = s.kop_line3;
+      document.getElementById('set-school-address').value = s.school_address;
+      document.getElementById('set-principal-name').value = s.principal_name;
+      document.getElementById('set-principal-nip').value = s.principal_nip;
+      document.getElementById('set-admin-name').value = s.admin_name;
+      document.getElementById('set-admin-nip').value = s.admin_nip;
+      document.getElementById('set-logo-daerah-url').value = s.logo_daerah_url;
+      document.getElementById('set-logo-instansi-url').value = s.logo_instansi_url;
+      document.getElementById('preview-set-logo-daerah').src = s.logo_daerah_url;
+      document.getElementById('preview-set-logo-instansi').src = s.logo_instansi_url;
+      document.getElementById('set-school-lat').value = s.school_lat;
+      document.getElementById('set-school-lng').value = s.school_lng;
+      document.getElementById('set-max-radius').value = s.max_radius_meters;
+      document.getElementById('set-work-start').value = s.work_start_time;
+      document.getElementById('set-work-end').value = s.work_end_time;
+
+      window.toggleRadiusLock(appState.radiusLocked);
+
+      // Terapkan ke elemen global
+      document.getElementById('login-school-title').textContent = s.app_name;
+      document.getElementById('sidebar-app-title').textContent = s.app_name;
+      document.getElementById('sidebar-school-logo').src = s.logo_instansi_url;
+      document.getElementById('sidebar-radius-label').textContent = appState.radiusLocked
+        ? `🔒 Radius Terkunci: ${s.max_radius_meters} Meter dari titik sekolah`
+        : `Batas jarak: ${s.max_radius_meters} Meter dari titik sekolah`;
+      document.getElementById('hero-kop-badge').textContent = s.kop_line1;
+      document.getElementById('hero-school-heading').textContent = `Disiplin & Transparan Bersama ${s.app_name}`;
+    }
+
+    window.handleLogoUpload = async (event, type) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const dataUrl = await readFileAsDataURL(file);
+      if (type === 'daerah') {
+        document.getElementById('set-logo-daerah-url').value = dataUrl;
+        document.getElementById('preview-set-logo-daerah').src = dataUrl;
+      } else {
+        document.getElementById('set-logo-instansi-url').value = dataUrl;
+        document.getElementById('preview-set-logo-instansi').src = dataUrl;
+      }
+      showToast(`Logo ${type === 'daerah' ? 'Daerah' : 'Instansi'} siap disimpan!`, 'info');
+    };
+
+    window.setSchoolCoordsFromCurrentGPS = () => {
+      if (appState.radiusLocked) {
+        return showToast('Radius sedang terkunci! Klik tombol Buka Kunci terlebih dahulu.', 'info');
+      }
+      if (!navigator.geolocation) {
+        return showToast('Geolocation tidak didukung oleh browser ini.', 'error');
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById('set-school-lat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('set-school-lng').value = pos.coords.longitude.toFixed(6);
+          showToast('Koordinat lokasi saat ini berhasil disalin ke pengaturan titik sekolah!', 'success');
+        },
+        () => {
+          showToast('Tidak dapat mengambil GPS, pastikan izin lokasi browser aktif.', 'error');
+        }
+      );
+    };
+
+    document.getElementById('app-settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (appState.currentUser?.role !== 'admin') {
+        return showToast('Akses ditolak! Hanya Administrator yang dapat mengubah pengaturan aplikasi.', 'error');
+      }
+      const updated = {
+        ...appState.settings,
+        app_name: document.getElementById('set-app-name').value.trim(),
+        kop_line1: document.getElementById('set-kop-1').value.trim(),
+        kop_line2: document.getElementById('set-kop-2').value.trim(),
+        kop_line3: document.getElementById('set-kop-3').value.trim(),
+        school_address: document.getElementById('set-school-address').value.trim(),
+        principal_name: document.getElementById('set-principal-name').value.trim(),
+        principal_nip: document.getElementById('set-principal-nip').value.trim(),
+        admin_name: document.getElementById('set-admin-name').value.trim(),
+        admin_nip: document.getElementById('set-admin-nip').value.trim(),
+        logo_daerah_url: document.getElementById('set-logo-daerah-url').value.trim(),
+        logo_instansi_url: document.getElementById('set-logo-instansi-url').value.trim(),
+        school_lat: parseFloat(document.getElementById('set-school-lat').value),
+        school_lng: parseFloat(document.getElementById('set-school-lng').value),
+        max_radius_meters: parseInt(document.getElementById('set-max-radius').value, 10) || 150,
+        work_start_time: document.getElementById('set-work-start').value,
+        work_end_time: document.getElementById('set-work-end').value
+      };
+
+      appState.settings = updated;
+      appState.radiusLocked = true; // Kunci otomatis radius setelah Admin menyimpan pengaturan
+
+      if (!IS_PREVIEW && supabase) {
+        const { error } = await supabase.from('app_settings').upsert([updated]);
+        if (error) return showToast('Gagal menyimpan pengaturan ke Supabase: ' + error.message, 'error');
+      }
+
+      refreshAllViews();
+      showToast(`Pengaturan disimpan & Radius (${updated.max_radius_meters}m) otomatis terkunci! Absensi di luar radius tidak akan terbaca.`, 'success');
+    });
+
+    // =========================================================================
+    // JAM DIGITAL REAL-TIME & SINKRONISASI VIEW
+    // =========================================================================
+    function startLiveClock() {
+      const updateClock = () => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const shortTime = now.toTimeString().slice(0, 5) + ' WIT';
+        const dateStr = now.toLocaleDateString('id-ID', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        const bigClock = document.getElementById('dashboard-big-clock');
+        const bigDate = document.getElementById('dashboard-big-date');
+        const loginClock = document.getElementById('login-live-clock');
+        const attBadge = document.getElementById('att-live-time-badge');
+
+        if (bigClock) bigClock.textContent = timeStr;
+        if (bigDate) bigDate.textContent = dateStr;
+        if (loginClock) loginClock.textContent = shortTime;
+        if (attBadge) attBadge.textContent = shortTime;
+      };
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function refreshAllViews() {
+      populateSettingsForm();
+      populateTeacherDropdowns();
+      updateGeolocationUI();
+      renderDashboard();
+      window.renderTeachersTable();
+      window.renderAttendanceTable();
+      window.renderLeavesList();
+      window.renderFormalReport();
+    }
+
+    // =========================================================================
+    // INISIALISASI SAAT HALAMAN DIMUAT
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      registerSingleFilePWA();
+      startLiveClock();
+      document.getElementById('leave-start-date').value = todayISO;
+      document.getElementById('leave-end-date').value = todayISO;
+      const repStart = document.getElementById('report-start-date');
+      const repEnd = document.getElementById('report-end-date');
+      if (repStart) repStart.value = startOfMonthISO;
+      if (repEnd) repEnd.value = todayISO;
+      await autoSetupDatabase();
+      refreshAllViews();
+    });
+  </script>
+</body>
+</html>
